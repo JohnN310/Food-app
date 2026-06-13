@@ -80,30 +80,32 @@ export default function OrdersScreen() {
       </View>
 
       {/* Tabs / Filter Chips */}
-      <View className="px-5 mb-5">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="overflow-visible" contentContainerStyle={{ paddingRight: 20 }}>
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const Icon = tab.icon;
-            return (
-              <Pressable
-                key={tab.id}
-                onPress={() => setActiveTab(tab.id)}
-                className={`flex-row items-center px-4 py-2.5 rounded-[14px] mr-3 border shadow-sm ${
-                  isActive 
-                    ? 'bg-[#F1F8F4] border-[#1B7A49]/20' 
-                    : 'bg-white border-gray-100'
-                }`}
-              >
-                <Icon size={16} color={isActive ? "#1B7A49" : "#6B7280"} />
-                <Text className={`ml-2 font-bold text-[13px] ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
+      {orders.length > 0 && (
+        <View className="px-5 mb-5">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="overflow-visible" contentContainerStyle={{ paddingRight: 20 }}>
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              const Icon = tab.icon;
+              return (
+                <Pressable
+                  key={tab.id}
+                  onPress={() => setActiveTab(tab.id)}
+                  className={`flex-row items-center px-4 py-2.5 rounded-[14px] mr-3 border shadow-sm ${
+                    isActive 
+                      ? 'bg-[#F1F8F4] border-[#1B7A49]/20' 
+                      : 'bg-white border-gray-100'
+                  }`}
+                >
+                  <Icon size={16} color={isActive ? "#1B7A49" : "#6B7280"} />
+                  <Text className={`ml-2 font-bold text-[13px] ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
         {filteredOrders.length === 0 ? (

@@ -10,7 +10,7 @@ Current State: The Home screen successfully fetches from the listings collection
 
 Please generate the code for the following four tasks to complete the buyer checkout flow:
 
-1. Build the Item Detail Screen (app/item/[id].tsx):
+1. Build the Item Detail Screen (app/listing/[id].tsx):
 
 Fetch the specific listing data from Firestore using the dynamic [id] from the route.
 
@@ -20,7 +20,7 @@ Include a sticky 'Reserve Now' button at the absolute bottom of the screen.
 
 When pressed, route the user to a checkout modal.
 
-2. Build the Checkout Modal (app/item/checkout-modal.tsx):
+2. Build the Checkout Modal (app/listing/checkout-modal.tsx):
 
 Create a clean confirmation screen summarizing the order and pickup instructions.
 

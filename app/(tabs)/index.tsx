@@ -138,34 +138,36 @@ export default function HomeScreen() {
         </View>
 
         {/* Categories: Horizontal Scroll with active state */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingRight: 20 }}
-          className="mb-5 overflow-visible"
-        >
-          <View className="flex-row gap-3">
-            {dynamicCategories.map((cat, idx) => {
-              const isActive = activeCategory === cat.label;
-              return (
-                <Pressable
-                  key={idx}
-                  onPress={() => setActiveCategory(cat.label)}
-                  className={`flex-row items-center px-4 py-2.5 rounded-[14px] border shadow-sm ${
-                    isActive 
-                      ? 'bg-[#F1F8F4] border-[#1B7A49]/20' 
-                      : 'bg-white border-gray-100'
-                  }`}
-                >
-                  <Text className="text-sm mr-2">{cat.icon}</Text>
-                  <Text className={`font-bold text-[13px] ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>
-                    {cat.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
+        {listings.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: 20 }}
+            className="mb-5 overflow-visible"
+          >
+            <View className="flex-row gap-3">
+              {dynamicCategories.map((cat, idx) => {
+                const isActive = activeCategory === cat.label;
+                return (
+                  <Pressable
+                    key={idx}
+                    onPress={() => setActiveCategory(cat.label)}
+                    className={`flex-row items-center px-4 py-2.5 rounded-[14px] border shadow-sm ${
+                      isActive 
+                        ? 'bg-[#F1F8F4] border-[#1B7A49]/20' 
+                        : 'bg-white border-gray-100'
+                    }`}
+                  >
+                    <Text className="text-sm mr-2">{cat.icon}</Text>
+                    <Text className={`font-bold text-[13px] ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>
+                      {cat.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
 
         {/* Impact Banner */}
         <View className="bg-[#F1F8F4] rounded-[24px] p-5 mb-6 flex-row items-center border border-[#E1F0E8]">
@@ -200,7 +202,7 @@ export default function HomeScreen() {
             <Pressable
               key={item.id}
               onPress={() => router.push({
-                pathname: "/item/[id]",
+                pathname: "/listing/[id]",
                 params: {
                   id: item.id,
                   itemData: JSON.stringify(item)

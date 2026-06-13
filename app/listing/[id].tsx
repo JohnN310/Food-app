@@ -1,7 +1,7 @@
 import { db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ArrowLeft, Clock, Heart, Info, MapPin, Share2, ShieldCheck, ShoppingBag, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
-export default function ItemDetailScreen() {
+export default function ListingDetailScreen() {
   const { id, itemData } = useLocalSearchParams();
   const router = useRouter();
 
@@ -68,12 +68,12 @@ export default function ItemDetailScreen() {
         createdAt: serverTimestamp(),
       };
       const docRef = await addDoc(collection(db, 'orders'), orderData);
-      
+
       // Update listing to 'sold'
       await updateDoc(doc(db, 'listings', item.id), { status: 'sold' });
 
       closeModal();
-      
+
       // Wait for swipe-to-buy modal to close, then dismiss the item/[id] transparentModal,
       // and finally push the order details screen onto the main stack.
       setTimeout(() => {
@@ -98,7 +98,7 @@ export default function ItemDetailScreen() {
         if (docSnap.exists()) {
           setItem({ id: docSnap.id, ...docSnap.data() });
         } else {
-          Alert.alert("Error", "This rescue item could not be found.");
+          Alert.alert("Error", "This rescue listing could not be found.");
         }
       } catch (error) {
         console.error("Error fetching item details:", error);
@@ -148,7 +148,7 @@ export default function ItemDetailScreen() {
               <Info size={40} color="#E53935" />
             </View>
             <Text className="text-xl font-bold text-gray-900 mb-2">Item Not Found</Text>
-            <Text className="text-gray-500 text-center mb-8">This listing may have been rescued already or removed by the seller.</Text>
+            <Text className="text-gray-500 text-center mb-8">This item may have been rescued already or removed by the seller.</Text>
             <Pressable
               onPress={handleBack}
               className="bg-brandPrimary px-10 py-4 rounded-full shadow-sm"
@@ -364,7 +364,7 @@ export default function ItemDetailScreen() {
                     onPress={handleBuy}
                     className="bg-brandPrimary py-5 rounded-full items-center shadow-lg shadow-brandPrimary/30 active:opacity-90"
                   >
-                    <Text className="text-white font-bold text-xl tracking-tight">Swipe to Buy ➔</Text>
+                    <Text className="text-white font-bold text-xl tracking-tight">Confirm</Text>
                   </Pressable>
                 </Animated.View>
               </View>

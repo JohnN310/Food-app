@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, Image, Platform } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
-import { ArrowLeft, Clock, MapPin, MessageSquare, ShieldCheck, HelpCircle, Navigation, ShoppingBag } from 'lucide-react-native';
+import { ArrowLeft, Clock, MapPin, MessageSquare, ShieldCheck, HelpCircle, Navigation, ShoppingBag, CheckCircle, XCircle } from 'lucide-react-native';
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -32,6 +32,36 @@ export default function OrderDetailsScreen() {
 
   // Generate a mock pickup code based on the order ID
   const mockCode = (order.id || 'ABCDEF').toUpperCase().slice(0, 12).match(/.{1,4}/g)?.join('  ') || '7XK2  M9L8  P3Q1';
+
+  const isCompleted = order.status === 'completed';
+  const isReady = order.status === 'ready';
+  const isOrdered = order.status === 'ordered';
+  const isCancelled = order.status === 'cancelled';
+
+  const badgeBg = isCompleted ? 'bg-brandPrimary-soft border-brandPrimary/20' : 
+                 isCancelled ? 'bg-gray-100 border-gray-200' : 
+                 isReady ? 'bg-brandPrimary-soft border-brandPrimary/20' : 
+                 isOrdered ? 'bg-orange-50 border-orange-200' : 'bg-gray-100 border-gray-200';
+                 
+  const badgeTextCol = isCompleted ? 'text-brandPrimary' : 
+                       isCancelled ? 'text-gray-500' : 
+                       isReady ? 'text-brandPrimary' : 
+                       isOrdered ? 'text-orange-600' : 'text-gray-500';
+                       
+  const statusText = isCompleted ? 'Completed' : 
+                     isCancelled ? 'Cancelled' : 
+                     isReady ? 'Ready for pickup' : 
+                     isOrdered ? 'Ordered' : 'Unknown';
+                     
+  const StatusIcon = isCompleted ? CheckCircle :
+                     isCancelled ? XCircle :
+                     isReady ? ShoppingBag :
+                     isOrdered ? Clock : HelpCircle;
+                     
+  const iconColor = isCompleted ? '#1B7A49' :
+                    isCancelled ? '#6B7280' :
+                    isReady ? '#1B7A49' :
+                    isOrdered ? '#EA580C' : '#6B7280';
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAF5]" edges={['top']}>
@@ -62,9 +92,9 @@ export default function OrderDetailsScreen() {
               <Text className="text-sm text-gray-500">Placed on {dateStr} at {timeStr}</Text>
             </View>
             <View className="items-end">
-              <View className="flex-row items-center bg-brandPrimary-soft px-3 py-1.5 rounded-lg border border-brandPrimary/20 mb-2">
-                <ShoppingBag size={14} color="#1B7A49" />
-                <Text className="text-brandPrimary font-bold text-xs ml-1.5">Ready for pickup</Text>
+              <View className={`flex-row items-center px-3 py-1.5 rounded-lg border mb-2 ${badgeBg}`}>
+                <StatusIcon size={14} color={iconColor} />
+                <Text className={`${badgeTextCol} font-bold text-xs ml-1.5`}>{statusText}</Text>
               </View>
               <Text className="text-xs text-gray-500">Code expires in</Text>
               <Text className="text-brandPrimary font-bold text-base">23:45</Text>

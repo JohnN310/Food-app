@@ -508,7 +508,7 @@ export default function InventoryScreen() {
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator color="#1B7A49" size="large" />
           </View>
-        ) : listings.length > 0 ? (
+        ) : (listings.length > 0 || orders.length > 0) ? (
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
             {orders.length > 0 && orders.some(o => o.status === 'completed') && (
               <View className="mb-6">
@@ -587,31 +587,35 @@ export default function InventoryScreen() {
               </View>
             )}
 
-            <Text className="text-gray-900 font-bold text-lg mb-3">Active Inventory</Text>
-            {listings.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => handleEditPress(item)}
-                className="bg-white rounded-3xl p-4 mb-4 flex-row border border-gray-100 shadow-sm active:opacity-70"
-              >
-                <View className="w-20 h-20 bg-brandPrimary-soft rounded-2xl items-center justify-center overflow-hidden">
-                  <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
-                </View>
-                <View className="flex-1 ml-4 justify-center">
-                  <Text className="text-lg font-bold text-gray-900 mb-1">{item.title}</Text>
-                  <View className="flex-row items-center gap-2">
-                    <Text className="text-brandPrimary font-bold">{item.price}</Text>
-                    <Text className="text-gray-400 line-through text-xs">{item.oldPrice}</Text>
-                    <View className="bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
-                      <Text className="text-brandPrimary text-[10px] font-bold">Qty: {item.quantity}</Text>
+            {listings.length > 0 && (
+              <View>
+                <Text className="text-gray-900 font-bold text-lg mb-3 mt-2">Active Inventory</Text>
+                {listings.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => handleEditPress(item)}
+                    className="bg-white rounded-3xl p-4 mb-4 flex-row border border-gray-100 shadow-sm active:opacity-70"
+                  >
+                    <View className="w-20 h-20 bg-brandPrimary-soft rounded-2xl items-center justify-center overflow-hidden">
+                      <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
                     </View>
-                  </View>
-                </View>
-                <View className="justify-center">
-                  <ChevronRight size={20} color="#D1D5DB" />
-                </View>
-              </Pressable>
-            ))}
+                    <View className="flex-1 ml-4 justify-center">
+                      <Text className="text-lg font-bold text-gray-900 mb-1">{item.title}</Text>
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-brandPrimary font-bold">{item.price}</Text>
+                        <Text className="text-gray-400 line-through text-xs">{item.oldPrice}</Text>
+                        <View className="bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
+                          <Text className="text-brandPrimary text-[10px] font-bold">Qty: {item.quantity}</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View className="justify-center">
+                      <ChevronRight size={20} color="#D1D5DB" />
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            )}
             <View className="h-10" />
           </ScrollView>
         ) : (
