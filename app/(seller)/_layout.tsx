@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Search, Map, ShoppingBag, User } from 'lucide-react-native';
+import { LayoutDashboard, Package, Settings } from 'lucide-react-native';
 import { View, Platform } from 'react-native';
 
 function TabBarIcon({ Icon, color, focused }: { Icon: any; color: string; focused: boolean }) {
@@ -11,13 +11,13 @@ function TabBarIcon({ Icon, color, focused }: { Icon: any; color: string; focuse
   );
 }
 
-export default function TabLayout() {
+export default function SellerLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#1B7A49', // Brand Green
-        tabBarInactiveTintColor: '#9CA3AF', // Gray-400
+        tabBarActiveTintColor: '#1B7A49',
+        tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#FAFAF5',
           borderTopWidth: 1,
@@ -25,41 +25,34 @@ export default function TabLayout() {
           height: Platform.OS === 'ios' ? 88 : 70,
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           paddingTop: 10,
-          elevation: 0, // Removes shadow on Android
+          elevation: 0,
         },
         tabBarLabelStyle: {
           fontSize: 10,
           marginTop: 4,
-          fontFamily: 'Inter-Medium', // we can swap later if font is different
+          fontFamily: 'Inter-Medium',
         },
         tabBarShowLabel: true,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={Home} color={color} focused={focused} />,
+          title: 'Dashboard',
+          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={LayoutDashboard} color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="map"
+        name="inventory"
         options={{
-          title: 'Map',
-          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={Map} color={color} focused={focused} />,
+          title: 'Inventory',
+          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={Package} color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="settings"
         options={{
-          title: 'Orders',
-          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={ShoppingBag} color={color} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={User} color={color} focused={focused} />,
+          title: 'Settings',
+          tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={Settings} color={color} focused={focused} />,
         }}
       />
     </Tabs>

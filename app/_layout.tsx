@@ -1,12 +1,18 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useSegments, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import '../global.css';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { View, ActivityIndicator } from 'react-native';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebaseLib';
+import { useAppStore } from '@/store/app-store';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -19,7 +25,7 @@ export const unstable_settings = {
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -34,7 +40,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => { });
     }
   }, [loaded]);
 
@@ -46,12 +52,159 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const segments = useSegments();
+  const router = useRouter();
+
+  const user = useAppStore(state => state.user);
+  const isAuthInitialized = useAppStore(state => state.isAuthInitialized);
+  const setUser = useAppStore(state => state.setUser);
+  const setAuthInitialized = useAppStore(state => state.setAuthInitialized);
+  const setRole = useAppStore(state => state.setRole);
+  const setUnreadMessagesCount = useAppStore(state => state.setUnreadMessagesCount);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        // Sync Firestore doc
+        try {
+          const docRef = doc(db, 'users', firebaseUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.role) setRole(data.role);
+          }
+        } catch (e: any) {
+          // Silently ignore offline errors to prevent Expo red screens
+          if (e.code !== 'unavailable') {
+            console.log("Firestore sync warning:", e.message);
+          }
+        }
+      } else {
+        setUser(null);
+        setRole(null);
+        setUnreadMessagesCount(0);
+      }
+      // CRITICAL: Only mark as initialized AFTER Firestore sync is done
+      setAuthInitialized(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  const setSavedItems = useAppStore(state => state.setSavedItems);
+  const setOrders = useAppStore(state => state.setOrders);
+
+  // Global Listeners for Notifications, Saved Items, and Orders
+  useEffect(() => {
+    if (!user) return;
+    
+    // Notifications Listener
+    const qNotif = query(
+      collection(db, 'notifications'),
+      where('userId', '==', user.uid),
+      where('read', '==', false)
+    );
+    const unsubNotif = onSnapshot(qNotif, (snapshot) => {
+      setUnreadMessagesCount(snapshot.size);
+    }, (err) => {
+      console.log("Notification listener error:", err.message);
+    });
+
+    // Orders Listener
+    const qOrders = query(
+      collection(db, 'orders'),
+      where('buyerId', '==', user.uid)
+    );
+    const unsubOrders = onSnapshot(qOrders, (snapshot) => {
+      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      // Sort orders locally if needed, or by timestamp. Let's just set them.
+      setOrders(orders);
+    }, (err) => {
+      console.log("Orders listener error:", err.message);
+    });
+
+    // User Profile Listener (for savedItems)
+    const unsubUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.savedItems) {
+          setSavedItems(data.savedItems);
+        }
+      }
+    }, (err) => {
+      console.log("User doc listener error:", err.message);
+    });
+
+    return () => {
+      unsubNotif();
+      unsubOrders();
+      unsubUser();
+    };
+  }, [user]);
+
+  const role = useAppStore(state => state.role);
+
+  useEffect(() => {
+    if (!isAuthInitialized) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const inSellerGroup = segments[0] === '(seller)';
+    const inTabsGroup = segments[0] === '(tabs)';
+
+    if (!user && !inAuthGroup) {
+      // Not logged in — send to login
+      router.replace('/(auth)/login');
+    } else if (user && inAuthGroup) {
+      // Just logged in — ONLY route once the role has been synced from Firestore
+      if (role === 'seller') {
+        router.replace('/(seller)');
+      } else if (role === 'buyer') {
+        router.replace('/(tabs)');
+      }
+      // If role is still null, we wait for the onAuthStateChanged fetch to finish
+    }
+  }, [user, isAuthInitialized, segments, role]);
+
+  if (!isAuthInitialized) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color="#1B7A49" />
+      </View>
+    );
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(seller)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="item/[id]"
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'fade'
+          }}
+        />
+
+        <Stack.Screen
+          name="profile/edit"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right'
+          }}
+        />
+
+        <Stack.Screen
+          name="order/[id]"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right'
+          }}
+        />
+
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
