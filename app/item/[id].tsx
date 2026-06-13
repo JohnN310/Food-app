@@ -1,7 +1,7 @@
 import { db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ArrowLeft, Clock, Heart, Info, MapPin, Share2, ShieldCheck, ShoppingBag, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -64,10 +64,14 @@ export default function ItemDetailScreen() {
         sellerId: item.sellerId || '',
         itemId: item.id,
         itemData: item,
-        status: 'reserved',
+        status: 'ordered',
         createdAt: serverTimestamp(),
       };
       const docRef = await addDoc(collection(db, 'orders'), orderData);
+      
+      // Update listing to 'sold'
+      await updateDoc(doc(db, 'listings', item.id), { status: 'sold' });
+
       closeModal();
       
       // Wait for swipe-to-buy modal to close, then dismiss the item/[id] transparentModal,

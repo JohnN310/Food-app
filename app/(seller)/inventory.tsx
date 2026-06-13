@@ -319,7 +319,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, Modal, TextInput, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Package, Plus, X, ChevronRight, DollarSign } from 'lucide-react-native';
+import { Package, Plus, X, ChevronRight, DollarSign, QrCode, CheckCircle, Clock } from 'lucide-react-native';
 import { collection, addDoc, onSnapshot, query, where, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
@@ -330,6 +330,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function InventoryScreen() {
   const user = useAppStore(state => state.user);
   const [listings, setListings] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -385,8 +386,8 @@ export default function InventoryScreen() {
 
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, 'listings'), where('sellerId', '==', user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const qListings = query(collection(db, 'listings'), where('sellerId', '==', user.uid), where('status', '==', 'active'));
+    const unsubscribeListings = onSnapshot(qListings, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setListings(docs);
       setLoading(false);
@@ -394,10 +395,35 @@ export default function InventoryScreen() {
       console.error("Inventory fetch error:", error);
       setLoading(false);
     });
-    return unsubscribe;
+
+    const qOrders = query(collection(db, 'orders'), where('sellerId', '==', user.uid));
+    const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      docs.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
+      setOrders(docs);
+    });
+
+    return () => {
+      unsubscribeListings();
+      unsubscribeOrders();
+    };
   }, [user]);
 
-  const handleEditPress = (item: any) => {
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+      Alert.alert("Success", `Order marked as ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating order:", error);
+      Alert.alert("Error", "Could not update order status.");
+    }
+  };
+
+  const handleEditPress = (item: any, orderId: string | null = null) => {
     setTitle(item.title);
     setDescription(item.description);
     setCategory(item.category);
@@ -484,6 +510,84 @@ export default function InventoryScreen() {
           </View>
         ) : listings.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+            {orders.length > 0 && orders.some(o => o.status === 'completed') && (
+              <View className="mb-6">
+                <Text className="text-gray-900 font-bold text-lg mb-3">Completed Orders</Text>
+                <View>
+                  {orders.filter(o => o.status === 'completed').map((order) => {
+                    const item = order.itemData || {};
+                    return (
+                      <View
+                        key={order.id}
+                        className="bg-white rounded-3xl p-4 mb-4 flex-row border border-gray-200 shadow-sm opacity-80"
+                      >
+                        <View className="w-20 h-20 bg-gray-100 rounded-2xl items-center justify-center overflow-hidden">
+                          <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
+                        </View>
+                        <View className="flex-1 ml-4 justify-center">
+                          <Text className="text-lg font-bold text-gray-500 mb-1" numberOfLines={1}>{item.title}</Text>
+                          <View className="flex-row items-center gap-2 mb-2">
+                            <Text className="text-gray-500 font-bold">{item.price}</Text>
+                            <Text className="text-gray-300 line-through text-xs">{item.oldPrice}</Text>
+                            <View className="bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
+                              <Text className="text-gray-500 text-[10px] font-bold">Qty: {item.quantity}</Text>
+                            </View>
+                          </View>
+                          <View className="self-start px-2 py-0.5 rounded border bg-[#E1F0E8] border-brandPrimary/20">
+                            <Text className="text-[10px] font-bold text-brandPrimary">
+                              Status: Completed
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {orders.length > 0 && orders.some(o => o.status === 'ordered' || o.status === 'ready') && (
+              <View className="mb-6">
+                <Text className="text-gray-900 font-bold text-lg mb-3">Pending Orders</Text>
+                <View>
+                  {orders.filter(o => o.status === 'ordered' || o.status === 'ready').map((order) => {
+                    const item = order.itemData || {};
+                    const isOrdered = order.status === 'ordered';
+                    return (
+                      <Pressable
+                        key={order.id}
+                        onPress={() => handleEditPress(item)}
+                        className="bg-white rounded-3xl p-4 mb-4 flex-row border border-brandPrimary/30 shadow-sm active:opacity-70"
+                      >
+                        <View className="w-20 h-20 bg-brandPrimary-soft rounded-2xl items-center justify-center overflow-hidden">
+                          <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
+                        </View>
+                        <View className="flex-1 ml-4 justify-center">
+                          <Text className="text-lg font-bold text-gray-900 mb-1" numberOfLines={1}>{item.title}</Text>
+                          <View className="flex-row items-center gap-2 mb-2">
+                            <Text className="text-brandPrimary font-bold">{item.price}</Text>
+                            <Text className="text-gray-400 line-through text-xs">{item.oldPrice}</Text>
+                            <View className="bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
+                              <Text className="text-brandPrimary text-[10px] font-bold">Qty: {item.quantity}</Text>
+                            </View>
+                          </View>
+                          <View className={`self-start px-2 py-0.5 rounded border ${isOrdered ? 'bg-orange-50 border-orange-100' : 'bg-[#E1F0E8] border-brandPrimary/20'}`}>
+                            <Text className={`text-[10px] font-bold ${isOrdered ? 'text-orange-600' : 'text-brandPrimary'}`}>
+                              {isOrdered ? 'Status: Ordered' : 'Status: Ready for pickup'}
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="justify-center">
+                          <ChevronRight size={20} color="#D1D5DB" />
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            <Text className="text-gray-900 font-bold text-lg mb-3">Active Inventory</Text>
             {listings.map((item) => (
               <Pressable
                 key={item.id}
@@ -638,6 +742,31 @@ export default function InventoryScreen() {
                     onChangeText={setQuantity}
                   />
                 </View>
+
+                {/* Display pending orders for this item here */}
+                {editingId && orders.some(o => o.itemId === editingId && (o.status === 'ordered' || o.status === 'ready')) && (
+                  <View className="mt-6 p-4 bg-brandPrimary-soft rounded-2xl border border-brandPrimary/20">
+                    <Text className="text-brandPrimary font-bold text-lg mb-3">Manage Orders</Text>
+                    {orders.filter(o => o.itemId === editingId && (o.status === 'ordered' || o.status === 'ready')).map(order => {
+                      const isOrdered = order.status === 'ordered';
+                      return (
+                        <View key={order.id} className="bg-white rounded-xl p-3 mb-2 shadow-sm border border-gray-100 flex-row justify-between items-center">
+                          <View>
+                            <Text className="font-bold text-gray-900 text-sm">Order #{order.id.substring(0, 8).toUpperCase()}</Text>
+                            <Text className="text-brandPrimary text-[10px] font-bold mt-1">Status: {isOrdered ? 'Ordered' : 'Ready for pickup'}</Text>
+                          </View>
+                          <Pressable 
+                            onPress={() => handleUpdateOrderStatus(order.id, isOrdered ? 'ready' : 'completed')}
+                            className="bg-brandPrimary px-3 py-2 rounded-lg flex-row items-center"
+                          >
+                            {isOrdered ? <QrCode size={12} color="white" className="mr-1" /> : <CheckCircle size={12} color="white" className="mr-1" />}
+                            <Text className="text-white font-bold text-[11px]">{isOrdered ? 'Mark Ready' : 'Mark Completed'}</Text>
+                          </Pressable>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
               </View>
 
               <Pressable

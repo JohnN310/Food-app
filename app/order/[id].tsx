@@ -38,8 +38,8 @@ export default function OrderDetailsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-4 relative">
-        <Pressable onPress={() => router.back()} className="p-2 ml-1 active:bg-gray-100 rounded-full z-10">
-          <ArrowLeft size={24} color="#111827" />
+        <Pressable onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm z-10">
+          <ArrowLeft size={20} color="#374151" />
         </Pressable>
         <View className="absolute left-0 right-0 items-center pointer-events-none">
           <Text className="text-xl font-bold text-gray-900">Order Details</Text>
