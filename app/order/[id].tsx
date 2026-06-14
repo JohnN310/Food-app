@@ -141,7 +141,14 @@ export default function OrderDetailsScreen() {
           <Image source={{ uri: item.image }} style={{ width: 80, height: 80 }} className="rounded-2xl bg-gray-100" />
           <View className="flex-1 ml-4 justify-between py-1">
             <View>
-              <Text className="font-bold text-gray-900 text-lg mb-0.5">{item.title}</Text>
+              <View className="flex-row items-center mb-0.5">
+                {(order.quantity && order.quantity > 1) && (
+                  <View className="bg-gray-100 px-2 py-0.5 rounded-md mr-2 border border-gray-200">
+                    <Text className="text-gray-600 text-[10px] font-bold">Qty: {order.quantity}</Text>
+                  </View>
+                )}
+                <Text className="font-bold text-gray-900 text-lg flex-1" numberOfLines={1}>{item.title}</Text>
+              </View>
               <Text className="text-gray-500 text-xs leading-relaxed" numberOfLines={2}>
                 {item.description || 'Assorted items and baked goods'}
               </Text>
@@ -218,13 +225,21 @@ export default function OrderDetailsScreen() {
         <Text className="font-bold text-gray-900 text-lg mb-3 px-1">Order summary</Text>
         <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-8 shadow-sm">
           <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-gray-600">Item total</Text>
+            <Text className="text-gray-600">Item price</Text>
             <Text className="text-gray-900">{item.price}</Text>
           </View>
+          {(order.quantity && order.quantity > 1) && (
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-gray-600">Quantity</Text>
+              <Text className="text-gray-900">x{order.quantity}</Text>
+            </View>
+          )}
           <View className="h-[1px] bg-gray-100 my-2" />
           <View className="flex-row justify-between items-center mt-1">
             <Text className="font-bold text-gray-900">Total Paid</Text>
-            <Text className="font-bold text-brandPrimary text-xl">{item.price}</Text>
+            <Text className="font-bold text-brandPrimary text-xl">
+              ${(parseFloat((item.price || '$0').replace('$', '')) * (order.quantity || 1)).toFixed(2)}
+            </Text>
           </View>
         </View>
 

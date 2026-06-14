@@ -43,3 +43,9 @@ On success, dismiss the modal and use router.replace() to send them to their act
 Build a simple UI to display the user's successful purchases.
 
 Use a Firestore onSnapshot listener to query the orders collection where buyerId == user.uid and status == 'active'.
+
+
+
+
+Notes
+- Need to fix the inventory flow. Order Delete flow and Hide Listing flow

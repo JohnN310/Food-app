@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, SlidersHorizontal, Bell, Heart, MapPin, ShoppingBag } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 import { CATEGORY_ICONS } from '@/lib/constants';
 
@@ -25,7 +25,7 @@ export default function HomeScreen() {
   // 1. Real-time Firebase Listener
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, 'listings'));
+    const q = query(collection(db, 'listings'), where('status', '==', 'active'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setListings(docs);

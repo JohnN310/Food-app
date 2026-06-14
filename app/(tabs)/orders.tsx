@@ -167,14 +167,23 @@ export default function OrdersScreen() {
                       </View>
                     </View>
                     <View className="items-end pt-1">
-                      <View className={`${badgeBg} px-2.5 py-1 rounded-full mb-2`}>
-                        <Text className={`${badgeTextCol} text-[10px] font-bold`}>{statusText}</Text>
+                      <View className="flex-row items-center mb-2">
+                        {(order.quantity && order.quantity > 1) && (
+                          <View className="bg-gray-100 px-2.5 py-1 rounded-full mr-2 border border-gray-200">
+                            <Text className="text-gray-600 text-[10px] font-bold">Qty: {order.quantity}</Text>
+                          </View>
+                        )}
+                        <View className={`${badgeBg} px-2.5 py-1 rounded-full`}>
+                          <Text className={`${badgeTextCol} text-[10px] font-bold`}>{statusText}</Text>
+                        </View>
                       </View>
                       <Text className="text-gray-400 text-[10px] font-medium mb-1.5">
                         Order #{order.id ? order.id.substring(0, 8).toUpperCase() : 'TSG-2487'}
                       </Text>
                       <View className="flex-row items-center">
-                        <Text className="font-bold text-brandPrimary text-[17px] mr-1">{item.price}</Text>
+                        <Text className="font-bold text-brandPrimary text-[17px] mr-1">
+                          ${(parseFloat((item.price || '$0').replace('$', '')) * (order.quantity || 1)).toFixed(2)}
+                        </Text>
                         <ChevronRight size={16} color="#9CA3AF" />
                       </View>
                     </View>

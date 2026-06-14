@@ -31,6 +31,7 @@ export default function ListingDetailScreen() {
   const existingOrder = orders.find((o: any) => o.itemId === item?.id);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [purchaseQuantity, setPurchaseQuantity] = useState(1);
   const slideAnim = useRef(new Animated.Value(height)).current;
 
   const openModal = () => {
@@ -65,17 +66,15 @@ export default function ListingDetailScreen() {
         itemId: item.id,
         itemData: item,
         status: 'ordered',
+        quantity: purchaseQuantity,
         createdAt: serverTimestamp(),
       };
       const docRef = await addDoc(collection(db, 'orders'), orderData);
 
-      // Update listing to 'sold'
-      await updateDoc(doc(db, 'listings', item.id), { status: 'sold' });
+      // Keep the listing active instead of marking it sold
+      // await updateDoc(doc(db, 'listings', item.id), { status: 'sold' });
 
       closeModal();
-
-      // Wait for swipe-to-buy modal to close, then dismiss the item/[id] transparentModal,
-      // and finally push the order details screen onto the main stack.
       setTimeout(() => {
         router.dismiss();
         setTimeout(() => {
@@ -243,6 +242,19 @@ export default function ListingDetailScreen() {
                   </Text>
                 </View>
 
+                {/* Seller Message 
+                {item.message && (
+                  <View className="bg-gray-50 rounded-[24px] p-5 mb-8 border border-gray-100">
+                    <Text className="font-bold text-gray-900 text-[15px] mb-2 flex-row items-center">
+                      Note from Seller
+                    </Text>
+                    <Text className="text-gray-600 text-[14px] leading-relaxed italic">
+                      "{item.message}"
+                    </Text>
+                  </View>
+                )}
+                */}
+
                 {/* Pickup Section */}
                 <View className="bg-brandAccent-yellow rounded-[32px] p-6 mb-8 border border-yellow-100">
                   <Text className="font-bold text-yellow-900 text-xl mb-4">Pickup Window</Text>
@@ -284,26 +296,33 @@ export default function ListingDetailScreen() {
               <View className="px-6 pt-4 pb-10">
                 <View className="flex-row justify-between items-center mb-4">
                   <View>
-                    <Text className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-0.5">Remaining</Text>
-                    <Text className="text-gray-900 font-bold text-lg">{item.quantity} items left</Text>
+                    <Text className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-0.5">Total Price</Text>
+                    <Text className="text-brandPrimary font-bold text-2xl">
+                      ${(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity).toFixed(2)}
+                    </Text>
                   </View>
-                  <Text className="text-brandPrimary font-bold text-2xl">{item.price}</Text>
+                  <View className="flex-row items-center bg-gray-50 rounded-full border border-gray-100">
+                    <Pressable 
+                      onPress={() => setPurchaseQuantity(Math.max(1, purchaseQuantity - 1))}
+                      className="w-10 h-10 items-center justify-center rounded-full"
+                    >
+                      <Text className="text-gray-600 font-bold text-xl">-</Text>
+                    </Pressable>
+                    <Text className="px-4 font-bold text-gray-900 text-lg">{purchaseQuantity}</Text>
+                    <Pressable 
+                      onPress={() => setPurchaseQuantity(purchaseQuantity + 1)}
+                      className="w-10 h-10 items-center justify-center rounded-full bg-brandPrimary"
+                    >
+                      <Text className="text-white font-bold text-xl">+</Text>
+                    </Pressable>
+                  </View>
                 </View>
                 <Pressable
-                  onPress={() => {
-                    if (existingOrder) {
-                      router.dismiss();
-                      setTimeout(() => {
-                        router.push(`/order/${existingOrder.id}` as any);
-                      }, 100);
-                    } else {
-                      openModal();
-                    }
-                  }}
-                  className={`w-full py-5 rounded-full items-center shadow-lg active:opacity-90 ${existingOrder ? 'bg-gray-900 shadow-gray-900/30' : 'bg-brandPrimary shadow-brandPrimary/30'}`}
+                  onPress={openModal}
+                  className="w-full py-5 rounded-full items-center shadow-lg active:opacity-90 bg-brandPrimary shadow-brandPrimary/30"
                 >
                   <Text className="text-white font-bold text-xl tracking-tight">
-                    {existingOrder ? 'View Order Details' : 'Reserve Now'}
+                    Reserve Now
                   </Text>
                 </Pressable>
               </View>
@@ -354,8 +373,15 @@ export default function ListingDetailScreen() {
                     </View>
 
                     <View className="flex-row justify-between items-center border-t border-gray-50 pt-4">
+                      <Text className="text-gray-600 font-medium">Quantity</Text>
+                      <Text className="font-bold text-gray-900 text-lg">x{purchaseQuantity}</Text>
+                    </View>
+
+                    <View className="flex-row justify-between items-center pt-2">
                       <Text className="text-gray-600 font-medium">Total Price</Text>
-                      <Text className="text-brandPrimary font-bold text-2xl">{item.price}</Text>
+                      <Text className="text-brandPrimary font-bold text-2xl">
+                        ${(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity).toFixed(2)}
+                      </Text>
                     </View>
                   </View>
 
