@@ -265,7 +265,7 @@ export default function InventoryScreen() {
         <View className="flex-row items-center justify-between mb-8">
           <View>
             <Text className="text-brandPrimary font-semibold text-xs tracking-widest uppercase mb-1">Store Inventory</Text>
-            <Text className="text-3xl font-bold text-gray-900">Listings</Text>
+            <Text className="text-3xl font-bold text-gray-900">Listings ({listings.filter(l => l.status === 'active' || l.status === 'hidden').length})</Text>
           </View>
           <Pressable
             onPress={openModal} // Changed to openModal
