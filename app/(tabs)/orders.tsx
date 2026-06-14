@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
-import { ChevronRight, ShoppingBag, Clock, CheckCircle, XCircle, Bell, MessageSquare, QrCode, CalendarPlus, Star } from 'lucide-react-native';
+import { ChevronRight, ShoppingBag, Clock, CheckCircle, XCircle, Bell, MessageSquare, QrCode, CalendarPlus, Star, Navigation } from 'lucide-react-native';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 
@@ -159,11 +159,11 @@ export default function OrdersScreen() {
                       )}
                     </View>
                     <View className="flex-1 pr-2 pt-1">
-                      <Text className="font-bold text-gray-900 text-[17px] mb-1">{item.store}</Text>
-                      <Text className="text-gray-500 text-[11px] mb-1.5">123 Eco Street, Portland, OR</Text>
+                      <Text className="font-bold text-gray-900 text-[17px] mb-1">{order.sellerData?.storeName || item.store}</Text>
+                      <Text className="text-gray-500 text-[11px] mb-1.5">{order.sellerData?.storeAddress || 'Address not provided'}</Text>
                       <View className="flex-row items-center">
                         <Clock size={12} color="#6B7280" />
-                        <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{dateStr}, {item.time || '10:00 AM – 10:30 AM'}</Text>
+                        <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.time || 'Time not provided'}</Text>
                       </View>
                     </View>
                     <View className="items-end pt-1">
@@ -178,7 +178,7 @@ export default function OrdersScreen() {
                         </View>
                       </View>
                       <Text className="text-gray-400 text-[10px] font-medium mb-1.5">
-                        Order #{order.id ? order.id.substring(0, 8).toUpperCase() : 'TSG-2487'}
+                        Order #{order.id ? order.id.substring(0, 8).toUpperCase() : 'N/A'}
                       </Text>
                       <View className="flex-row items-center">
                         <Text className="font-bold text-brandPrimary text-[17px] mr-1">
@@ -197,16 +197,8 @@ export default function OrdersScreen() {
                     <View className="flex-1 pr-2">
                       <Text className="font-bold text-gray-900 text-[14px] mb-0.5">{item.title}</Text>
                       <Text className="text-gray-500 text-[11px] leading-tight" numberOfLines={2}>
-                        {item.description || 'Assorted bread, pastries and baked goods'}
+                        {item.description || 'None'}
                       </Text>
-                    </View>
-                    <View className="ml-1 items-center px-1">
-                      <Text className="font-bold text-gray-900 text-[13px]">🌿 1.2 kg</Text>
-                      <Text className="text-gray-500 text-[9px] mt-0.5">Food saved</Text>
-                    </View>
-                    <View className="items-center pl-2 pr-1">
-                      <Text className="font-bold text-gray-900 text-[13px]">☁️ 2.3 kg</Text>
-                      <Text className="text-gray-500 text-[9px] mt-0.5">CO₂ saved</Text>
                     </View>
                   </View>
 
@@ -234,9 +226,9 @@ export default function OrdersScreen() {
                       
                       {isReady ? (
                         <Pressable className="flex-1 flex-row items-center justify-center py-3 px-2 border border-brandPrimary/30 rounded-xl bg-white">
-                          <QrCode size={16} color="#1B7A49" />
+                          <Navigation size={16} color="#1B7A49" />
                           <Text className="text-brandPrimary font-bold text-[13px] ml-2">
-                            View pickup code
+                            Get directions
                           </Text>
                         </Pressable>
                       ) : (

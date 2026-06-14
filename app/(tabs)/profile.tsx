@@ -5,7 +5,7 @@ import { signOut } from 'firebase/auth';
 import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import { ChevronRight, CreditCard, Gift, HelpCircle, Key, LogOut, MessageCircle, Phone, RefreshCw, Save, Settings, Shield, Star, Store, Trash2, User, Users, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height } = Dimensions.get('window');
@@ -175,7 +175,7 @@ export default function ProfileScreen() {
 
         {/* User Card */}
         <Modal visible={isEditing} animationType="fade" transparent={true} onRequestClose={closeEditModal}>
-          <View className="flex-1 justify-end">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 justify-end">
             <Pressable
               style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
               className="bg-black/40"
@@ -230,7 +230,7 @@ export default function ProfileScreen() {
                 )}
               </ScrollView>
             </Animated.View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         <View className="bg-white rounded-[24px] p-5 mb-5 border border-gray-100 shadow-sm flex-row items-center active:opacity-90">

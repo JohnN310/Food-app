@@ -4,6 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, Clock, MapPin, MessageSquare, ShieldCheck, HelpCircle, Navigation, ShoppingBag, CheckCircle, XCircle } from 'lucide-react-native';
+import { db } from '@/lib/firebaseLib';
+import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -25,13 +28,28 @@ export default function OrderDetailsScreen() {
 
   const item = order.itemData || {};
 
+  const [sellerData, setSellerData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchSeller = async () => {
+      if (order?.sellerId) {
+        try {
+          const docSnap = await getDoc(doc(db, 'users', order.sellerId));
+          if (docSnap.exists()) {
+            setSellerData(docSnap.data());
+          }
+        } catch (error) {
+          console.error("Error fetching seller:", error);
+        }
+      }
+    };
+    fetchSeller();
+  }, [order?.sellerId]);
+
   // Mock timestamp display
   const orderDate = new Date(order.createdAt?.seconds ? order.createdAt.seconds * 1000 : Date.now());
   const dateStr = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const timeStr = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-
-  // Generate a mock pickup code based on the order ID
-  const mockCode = (order.id || 'ABCDEF').toUpperCase().slice(0, 12).match(/.{1,4}/g)?.join('  ') || '7XK2  M9L8  P3Q1';
 
   const isCompleted = order.status === 'completed';
   const isReady = order.status === 'ready';
@@ -83,7 +101,7 @@ export default function OrderDetailsScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
         
         {/* Main Status Card */}
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-4 shadow-sm">
+        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm">
           <View className="flex-row justify-between items-start mb-2">
             <View>
               <Text className="font-bold text-xl text-gray-900 mb-1">
@@ -92,12 +110,10 @@ export default function OrderDetailsScreen() {
               <Text className="text-sm text-gray-500">Placed on {dateStr} at {timeStr}</Text>
             </View>
             <View className="items-end">
-              <View className={`flex-row items-center px-3 py-1.5 rounded-lg border mb-2 ${badgeBg}`}>
+              <View className={`flex-row items-center px-3 py-1.5 rounded-lg border ${badgeBg}`}>
                 <StatusIcon size={14} color={iconColor} />
                 <Text className={`${badgeTextCol} font-bold text-xs ml-1.5`}>{statusText}</Text>
               </View>
-              <Text className="text-xs text-gray-500">Code expires in</Text>
-              <Text className="text-brandPrimary font-bold text-base">23:45</Text>
             </View>
           </View>
           
@@ -107,10 +123,10 @@ export default function OrderDetailsScreen() {
           <View className="flex-row items-center">
             <Image source={require('../../assets/images/mascot_waving_1776538518453.png')} style={{ width: 48, height: 48 }} className="rounded-full bg-brandAccent-yellow" />
             <View className="flex-1 ml-3">
-              <Text className="font-bold text-gray-900 text-base">{item.store}</Text>
+              <Text className="font-bold text-gray-900 text-base">{sellerData?.storeName || item.store}</Text>
               <View className="flex-row items-center mt-0.5">
                 <MapPin size={12} color="#9CA3AF" />
-                <Text className="text-gray-500 text-xs ml-1 mr-3">{item.distance}</Text>
+                <Text className="text-gray-500 text-xs ml-1 mr-3">{sellerData?.storeAddress || item.distance}</Text>
                 <Text className="text-yellow-500 text-xs font-bold">⭐ {item.rating}</Text>
               </View>
             </View>
@@ -136,8 +152,8 @@ export default function OrderDetailsScreen() {
         </View>
 
         {/* Order Items */}
-        <Text className="font-bold text-gray-900 text-lg mb-3 px-1 mt-4">Order items</Text>
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-4 shadow-sm flex-row">
+        <Text className="font-bold text-gray-900 text-lg mb-2 px-1 mt-2">Order items</Text>
+        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm flex-row">
           <Image source={{ uri: item.image }} style={{ width: 80, height: 80 }} className="rounded-2xl bg-gray-100" />
           <View className="flex-1 ml-4 justify-between py-1">
             <View>
@@ -166,16 +182,16 @@ export default function OrderDetailsScreen() {
         </View>
 
         {/* Pickup Details */}
-        <Text className="font-bold text-gray-900 text-lg mb-3 px-1 mt-4">Pickup details</Text>
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-4 shadow-sm">
+        <Text className="font-bold text-gray-900 text-lg mb-2 px-1 mt-2">Pickup details</Text>
+        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm">
           <View className="flex-row items-center mb-5">
             <View className="w-10 h-10 bg-[#FAFAF5] rounded-full items-center justify-center mr-4 border border-gray-100">
               <MapPin size={20} color="#1B7A49" />
             </View>
             <View className="flex-1 mr-2">
               <Text className="text-gray-500 text-xs mb-0.5">Pickup at</Text>
-              <Text className="font-bold text-gray-900">{item.store}</Text>
-              <Text className="text-gray-500 text-xs">123 Eco Street, Portland, OR</Text>
+              <Text className="font-bold text-gray-900">{sellerData?.storeName || item.store}</Text>
+              <Text className="text-gray-500 text-xs">{sellerData?.storeAddress || 'Address not provided'}</Text>
             </View>
             <Pressable className="flex-row items-center bg-white border border-brandPrimary/30 px-3 py-2 rounded-full">
               <Navigation size={14} color="#1B7A49" />
@@ -191,8 +207,7 @@ export default function OrderDetailsScreen() {
             </View>
             <View className="flex-1">
               <Text className="text-gray-500 text-xs mb-0.5">Pickup time</Text>
-              <Text className="font-bold text-gray-900">Today, {dateStr.split(',')[0]}</Text>
-              <Text className="text-gray-800 text-sm mt-0.5 font-medium">{item.time || '10:00 AM - 10:30 AM'}</Text>
+              <Text className="font-bold text-gray-900">{item.time || '10:00 AM - 10:30 AM'}</Text>
             </View>
             <View className="w-24">
               <Text className="text-gray-400 text-right text-[10px] leading-tight">Please pickup within the time window</Text>
@@ -200,29 +215,8 @@ export default function OrderDetailsScreen() {
           </View>
         </View>
 
-        {/* Pickup Code */}
-        <View className="bg-[#F1F8F4] rounded-[24px] border border-brandPrimary/20 p-5 mb-8 flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text className="font-bold text-gray-900 text-sm mb-1">Pickup code</Text>
-            <Text className="text-gray-600 text-xs mb-3">Show this code to the store staff</Text>
-            
-            <View className="bg-brandPrimary-soft px-3 py-2 rounded-lg self-start border border-brandPrimary/20">
-              <Text className="text-brandPrimary font-bold text-lg tracking-widest">{mockCode}</Text>
-            </View>
-            <View className="flex-row items-center mt-3">
-              <ShieldCheck size={14} color="#1B7A49" />
-              <Text className="text-brandPrimary text-xs font-medium ml-1">Secure code • Expires in 23:45</Text>
-            </View>
-          </View>
-          
-          <View className="w-24 h-24 bg-white rounded-xl items-center justify-center border border-gray-200">
-            {/* Fake QR code using lucide icon */}
-            <View className="w-20 h-20 bg-gray-900 rounded-lg opacity-80" />
-          </View>
-        </View>
-
         {/* Order Summary */}
-        <Text className="font-bold text-gray-900 text-lg mb-3 px-1">Order summary</Text>
+        <Text className="font-bold text-gray-900 text-lg mb-2 px-1 mt-2">Order summary</Text>
         <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-8 shadow-sm">
           <View className="flex-row justify-between items-center mb-3">
             <Text className="text-gray-600">Item price</Text>

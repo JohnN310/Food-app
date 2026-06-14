@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, SlidersHorizontal, Bell, Heart, MapPin, ShoppingBag } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 import { CATEGORY_ICONS } from '@/lib/constants';
 
@@ -26,9 +26,29 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'listings'), where('status', '==', 'active'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setListings(docs);
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      
+      const sellerIds = [...new Set(docs.map(d => d.sellerId).filter(Boolean))];
+      const sellersMap: Record<string, any> = {};
+      
+      try {
+        await Promise.all(sellerIds.map(async (sellerId) => {
+          const sellerSnap = await getDoc(doc(db, 'users', sellerId as string));
+          if (sellerSnap.exists()) {
+            sellersMap[sellerId as string] = sellerSnap.data();
+          }
+        }));
+      } catch (err) {
+        console.log("Error fetching sellers for listings:", err);
+      }
+      
+      const enrichedDocs = docs.map(d => ({
+        ...d,
+        sellerData: d.sellerId ? sellersMap[d.sellerId] : null
+      }));
+      
+      setListings(enrichedDocs);
     }, (error) => {
       console.log("Listing listener error:", error.message);
     });
@@ -50,8 +70,9 @@ export default function HomeScreen() {
 
       // Search Match (Title or Store)
       const search = searchQuery.toLowerCase();
+      const actualStoreName = deal.sellerData?.storeName || deal.store;
       const matchesSearch = deal.title.toLowerCase().includes(search) ||
-        deal.store.toLowerCase().includes(search);
+        actualStoreName.toLowerCase().includes(search);
 
       return matchesCategory && matchesSearch;
     });
@@ -227,10 +248,10 @@ export default function HomeScreen() {
                 
                 <View className="flex-1 pr-2 pt-1">
                   <Text className="font-bold text-gray-900 text-[17px] mb-1" numberOfLines={1}>{item.title}</Text>
-                  <Text className="text-gray-500 text-[11px] mb-1.5">{item.store}</Text>
+                  <Text className="text-gray-500 text-[11px] mb-1.5">{item.sellerData?.storeName || item.store}</Text>
                   <View className="flex-row items-center">
                     <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.distance}</Text>
+                    <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.sellerData?.storeAddress || item.distance}</Text>
                   </View>
                 </View>
                 

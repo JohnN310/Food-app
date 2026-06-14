@@ -95,7 +95,20 @@ export default function ListingDetailScreen() {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setItem({ id: docSnap.id, ...docSnap.data() });
+          const listingData: any = { id: docSnap.id, ...docSnap.data() };
+          
+          if (listingData.sellerId) {
+            try {
+              const sellerSnap = await getDoc(doc(db, 'users', listingData.sellerId));
+              if (sellerSnap.exists()) {
+                listingData.sellerData = sellerSnap.data();
+              }
+            } catch (err) {
+              console.error("Error fetching seller details:", err);
+            }
+          }
+          
+          setItem(listingData);
         } else {
           Alert.alert("Error", "This rescue listing could not be found.");
         }
@@ -217,7 +230,7 @@ export default function ListingDetailScreen() {
                 <Text className="font-bold text-gray-900 text-3xl mb-2">{item.title}</Text>
                 <View className="flex-row items-center mb-6">
                   <ShoppingBag size={16} color="#4B5563" />
-                  <Text className="text-gray-600 font-medium ml-2 text-base">{item.store}</Text>
+                  <Text className="text-gray-600 font-medium ml-2 text-base">{item.sellerData?.storeName || item.store}</Text>
                 </View>
 
                 {/* Pricing Block */}
@@ -264,7 +277,7 @@ export default function ListingDetailScreen() {
                     </View>
                     <View className="flex-1">
                       <Text className="font-bold text-yellow-950">Store Location</Text>
-                      <Text className="text-yellow-800 text-sm">{item.distance} away · Open now</Text>
+                      <Text className="text-yellow-800 text-sm">{item.sellerData?.storeAddress || 'Address not provided'}</Text>
                     </View>
                   </View>
                   <View className="flex-row items-center">
@@ -273,7 +286,7 @@ export default function ListingDetailScreen() {
                     </View>
                     <View className="flex-1">
                       <Text className="font-bold text-yellow-950">Time Frame</Text>
-                      <Text className="text-yellow-800 text-sm">Today, {item.time}</Text>
+                      <Text className="text-yellow-800 text-sm">{item.time}</Text>
                     </View>
                   </View>
                 </View>
@@ -363,13 +376,13 @@ export default function ListingDetailScreen() {
                       </View>
                       <View className="flex-1">
                         <Text className="font-bold text-gray-900 text-lg mb-0.5">{item.title}</Text>
-                        <Text className="text-gray-500 text-sm">{item.store}</Text>
+                        <Text className="text-gray-500 text-sm">{item.sellerData?.storeName || item.store}</Text>
                       </View>
                     </View>
 
                     <View className="bg-brandAccent-yellow p-3 rounded-2xl flex-row items-center mb-4">
                       <Clock size={16} color="#78350F" />
-                      <Text className="ml-2 text-yellow-900 font-medium text-sm">Pickup today, {item.time}</Text>
+                      <Text className="ml-2 text-yellow-900 font-medium text-sm">Pickup: {item.time}</Text>
                     </View>
 
                     <View className="flex-row justify-between items-center border-t border-gray-50 pt-4">

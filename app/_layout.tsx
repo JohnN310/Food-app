@@ -115,10 +115,31 @@ function RootLayoutNav() {
       collection(db, 'orders'),
       where('buyerId', '==', user.uid)
     );
-    const unsubOrders = onSnapshot(qOrders, (snapshot) => {
-      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      // Sort orders locally if needed, or by timestamp. Let's just set them.
-      setOrders(orders);
+    const unsubOrders = onSnapshot(qOrders, async (snapshot) => {
+      const ordersDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      
+      const uniqueSellerIds = [...new Set(ordersDocs.map(o => o.sellerId).filter(Boolean))];
+      const sellersMap: Record<string, any> = {};
+      
+      await Promise.all(
+        uniqueSellerIds.map(async (sellerId) => {
+          try {
+            const sellerDoc = await getDoc(doc(db, 'users', sellerId as string));
+            if (sellerDoc.exists()) {
+              sellersMap[sellerId as string] = sellerDoc.data();
+            }
+          } catch (error) {
+            console.error("Error fetching seller", sellerId, error);
+          }
+        })
+      );
+      
+      const enrichedOrders = ordersDocs.map(o => ({
+        ...o,
+        sellerData: o.sellerId ? sellersMap[o.sellerId] : null
+      }));
+      
+      setOrders(enrichedOrders);
     }, (err) => {
       console.log("Orders listener error:", err.message);
     });

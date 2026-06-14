@@ -5,6 +5,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp,
 import { CheckCircle, ChevronRight, DollarSign, Package, Plus, QrCode, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View, Switch } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -23,6 +24,9 @@ export default function InventoryScreen() {
   const [category, setCategory] = useState('Bakery');
   const [originalPrice, setOriginalPrice] = useState('');
   const [discountPrice, setDiscountPrice] = useState('');
+  const [pickupDate, setPickupDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [message, setMessage] = useState('');
   const [isHidden, setIsHidden] = useState(false);
   const [originalItem, setOriginalItem] = useState<any>(null);
@@ -161,6 +165,14 @@ export default function InventoryScreen() {
     setCategory(item.category);
     setOriginalPrice(item.oldPrice.replace('$', ''));
     setDiscountPrice(item.price.replace('$', ''));
+    
+    // Restore the date if we saved it previously, otherwise fallback to current date
+    if (item.pickupTimestamp) {
+      setPickupDate(new Date(item.pickupTimestamp));
+    } else {
+      setPickupDate(new Date());
+    }
+    
     setMessage(item.message || '');
     setIsHidden(item.status === 'hidden');
     setOriginalItem({
@@ -169,6 +181,7 @@ export default function InventoryScreen() {
       category: item.category,
       originalPrice: item.oldPrice.replace('$', ''),
       discountPrice: item.price.replace('$', ''),
+      pickupDate: item.pickupTimestamp ? new Date(item.pickupTimestamp) : new Date(),
       message: item.message || '',
       isHidden: item.status === 'hidden',
     });
@@ -193,6 +206,8 @@ export default function InventoryScreen() {
         price: `$${parseFloat(discountPrice).toFixed(2)}`,
         oldPrice: `$${parseFloat(originalPrice).toFixed(2)}`,
         discount: `${Math.round((1 - parseFloat(discountPrice) / parseFloat(originalPrice)) * 100)}% OFF`,
+        time: `${pickupDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${pickupDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
+        pickupTimestamp: pickupDate.getTime(),
         message,
         quantity: 1,
       };
@@ -213,7 +228,6 @@ export default function InventoryScreen() {
         payload.store = "Your Store";
         payload.rating = "4.8";
         payload.distance = "0.2 mi";
-        payload.time = "Pick up now";
         payload.badges = [{ text: "Fresh Today", type: "green" }];
 
         await addDoc(collection(db, 'listings'), payload);
@@ -232,6 +246,7 @@ export default function InventoryScreen() {
     setCategory('Bakery');
     setOriginalPrice('');
     setDiscountPrice('');
+    setPickupDate(new Date());
     setMessage('');
     setIsHidden(false);
     setOriginalItem(null);
@@ -252,10 +267,11 @@ export default function InventoryScreen() {
       category !== originalItem.category ||
       originalPrice !== originalItem.originalPrice ||
       discountPrice !== originalItem.discountPrice ||
+      pickupDate.getTime() !== originalItem.pickupDate?.getTime() ||
       message !== originalItem.message ||
       isHidden !== originalItem.isHidden
     );
-  }, [title, description, category, originalPrice, discountPrice, message, isHidden, editingId, originalItem, isRelistMode]);
+  }, [title, description, category, originalPrice, discountPrice, pickupDate, message, isHidden, editingId, originalItem, isRelistMode]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -426,7 +442,6 @@ export default function InventoryScreen() {
                         className="flex-1 ml-2 text-gray-900"
                         placeholder="0.00"
                         keyboardType="numeric"
-                        returnKeyType="done"
                         value={originalPrice}
                         onChangeText={setOriginalPrice}
                       />
@@ -440,13 +455,116 @@ export default function InventoryScreen() {
                         className="flex-1 ml-2 text-gray-900"
                         placeholder="0.00"
                         keyboardType="numeric"
-                        returnKeyType="done"
                         value={discountPrice}
                         onChangeText={setDiscountPrice}
                       />
                     </View>
                   </View>
                 </View>
+
+                <View className="mt-4">
+                  <Text className="text-gray-700 font-bold mb-2 ml-1">Pickup Time & Date</Text>
+                  <View className="flex-row gap-3">
+                    <Pressable 
+                      onPress={() => setShowDatePicker(true)}
+                      className="flex-1 bg-white px-4 py-4 rounded-2xl border border-gray-100 items-center justify-center"
+                    >
+                      <Text className="text-gray-900 font-medium">
+                        {pickupDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </Text>
+                    </Pressable>
+                    <Pressable 
+                      onPress={() => setShowTimePicker(true)}
+                      className="flex-1 bg-white px-4 py-4 rounded-2xl border border-gray-100 items-center justify-center"
+                    >
+                      <Text className="text-gray-900 font-medium">
+                        {pickupDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                {/* --- ANDROID: Uses the native OS dialog overlay automatically --- */}
+                {Platform.OS === 'android' && showDatePicker && (
+                  <DateTimePicker
+                    value={pickupDate}
+                    mode="date"
+                    display="default"
+                    onChange={(event, date) => {
+                      setShowDatePicker(false);
+                      if (date) {
+                        const newDate = new Date(pickupDate);
+                        newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                        setPickupDate(newDate);
+                      }
+                    }}
+                  />
+                )}
+
+                {Platform.OS === 'android' && showTimePicker && (
+                  <DateTimePicker
+                    value={pickupDate}
+                    mode="time"
+                    display="default"
+                    onChange={(event, date) => {
+                      setShowTimePicker(false);
+                      if (date) {
+                        const newDate = new Date(pickupDate);
+                        newDate.setHours(date.getHours(), date.getMinutes(), 0, 0);
+                        setPickupDate(newDate);
+                      }
+                    }}
+                  />
+                )}
+
+                {/* --- IOS: Requires a Modal wrapper for the popup experience --- */}
+                {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
+                  <Modal transparent={true} animationType="fade" visible={true}>
+                    <View className="flex-1 justify-end bg-black/40">
+                      <View className="bg-white rounded-t-3xl pb-8">
+                        
+                        {/* iOS Modal Header with Done Button */}
+                        <View className="flex-row justify-between items-center border-b border-gray-100 px-6 py-4">
+                          <Text className="text-gray-900 font-bold text-lg">
+                            Select {showDatePicker ? 'Date' : 'Time'}
+                          </Text>
+                          <Pressable 
+                            onPress={() => {
+                              setShowDatePicker(false);
+                              setShowTimePicker(false);
+                            }}
+                          >
+                            <Text className="text-brandPrimary font-bold text-lg">Done</Text>
+                          </Pressable>
+                        </View>
+
+                        {/* The iOS Spinner */}
+                        <View className="w-full items-center justify-center">
+                          <DateTimePicker
+                            value={pickupDate}
+                            mode={showDatePicker ? "date" : "time"}
+                            display="spinner"
+                            textColor="#000000" /* Prevents invisible text if user device is in Dark Mode */
+                            style={{ alignSelf: 'center' }}
+                            onChange={(event, date) => {
+                              // Note: We DO NOT close the modal here on iOS. 
+                              // We let the user spin the wheel and tap "Done" when finished.
+                              if (date) {
+                                const newDate = new Date(pickupDate);
+                                if (showDatePicker) {
+                                  newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                                } else {
+                                  newDate.setHours(date.getHours(), date.getMinutes(), 0, 0);
+                                }
+                                setPickupDate(newDate);
+                              }
+                            }}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
+                )}
 
                 {/* 
                 <View className="mt-4">
