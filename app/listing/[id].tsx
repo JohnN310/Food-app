@@ -2,7 +2,7 @@ import { db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { ArrowLeft, Clock, Heart, Info, MapPin, Share2, ShieldCheck, ShoppingBag, X } from 'lucide-react-native';
+import { ArrowLeft, Clock, Heart, Info, MapPin, Share2, ShieldCheck, ShoppingBag, Store, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -204,32 +204,22 @@ export default function ListingDetailScreen() {
                   resizeMode="cover"
                 />
 
-                {/* Bottom Gradient Overlay (Mocked via colored container) */}
-                <View className="absolute bottom-0 w-full h-16 bg-white rounded-t-[40px]" />
               </View>
 
               {/* Content Body */}
-              <View className="bg-white -mt-4 px-6 pb-32">
+              <View className="bg-white -mt-8 pt-6 px-6 pb-32 rounded-t-[32px]">
 
-                {/* Badges & Rating */}
-                <View className="flex-row justify-between items-center mb-4">
-                  <View className="flex-row gap-2">
-                    {item.badges?.map((badge: any, bidx: number) => (
-                      <View key={bidx} className={`py-1.5 px-3 rounded-lg ${badge.type === 'green' ? 'bg-brandPrimary-soft' : 'bg-red-50'}`}>
-                        <Text className={`text-[11px] font-bold tracking-wider uppercase ${badge.type === 'green' ? 'text-brandPrimary' : 'text-red-500'}`}>
-                          {badge.text}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                  <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                    <Text className="text-gray-900 font-bold text-sm">⭐ {item.rating}</Text>
-                  </View>
+                {/* Title & Rating */}
+                <View className="flex-row justify-between items-start mb-2 pt-2">
+                  <Text className="font-bold text-gray-900 text-3xl flex-1 mr-4">{item.title}</Text>
+                  {item.sellerData?.averageRating && (
+                    <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 mt-1">
+                      <Text className="text-gray-900 font-bold text-sm">⭐ {item.sellerData.averageRating}</Text>
+                    </View>
+                  )}
                 </View>
-
-                <Text className="font-bold text-gray-900 text-3xl mb-2">{item.title}</Text>
                 <View className="flex-row items-center mb-6">
-                  <ShoppingBag size={16} color="#4B5563" />
+                  <Store size={16} color="#4B5563" />
                   <Text className="text-gray-600 font-medium ml-2 text-base">{item.sellerData?.storeName || item.store}</Text>
                 </View>
 

@@ -60,7 +60,9 @@ export default function SearchScreen() {
               <View className="flex-1 ml-4 justify-between py-1">
                 <View className="pr-6">
                   <Text className="font-bold text-gray-900 text-lg" numberOfLines={1}>{item.title}</Text>
-                  <Text className="text-gray-500 text-xs mt-1">⭐ {item.rating} · {item.store}</Text>
+                  <Text className="text-gray-500 text-xs mt-1">
+                    {(item as any).sellerData?.averageRating ? `⭐ ${(item as any).sellerData.averageRating} · ` : ''}{(item as any).sellerData?.storeName || item.store}
+                  </Text>
                 </View>
                 <View className="flex-row items-end justify-between mt-auto pt-2">
                   <View className="flex-row items-end gap-2">

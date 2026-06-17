@@ -24,6 +24,7 @@ export default function SellerDashboard() {
   const user = useAppStore(state => state.user);
   // State for our dynamic metrics
   const [activeListingsCount, setActiveListingsCount] = useState<number | string>('—');
+  const [averageRating, setAverageRating] = useState<string>('—');
   const [orders, setOrders] = useState<any[]>([]);
 
   // Real-time listener for Active Listings
@@ -60,9 +61,19 @@ export default function SellerDashboard() {
       setOrders(ordersData);
     });
 
+    const unsubscribeUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.averageRating) {
+          setAverageRating(data.averageRating.toString());
+        }
+      }
+    });
+
     return () => {
       unsubscribe();
       unsubscribeOrders();
+      unsubscribeUser();
     };
   }, [user?.uid]);
 
@@ -102,7 +113,7 @@ export default function SellerDashboard() {
         <View className="flex-row mb-6">
           <StatCard label="Active Listings" value={activeListingsCount.toString()} icon={ShoppingBag} color="#1B7A49" />
           <StatCard label="This Month" value="—" icon={TrendingUp} color="#F59E0B" />
-          <StatCard label="Rating" value="—" icon={Star} color="#8B5CF6" />
+          <StatCard label="Rating" value={averageRating} icon={Star} color="#8B5CF6" />
         </View>
 
         {/* Recent Activity */}

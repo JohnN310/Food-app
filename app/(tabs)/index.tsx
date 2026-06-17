@@ -15,6 +15,7 @@ export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [listings, setListings] = useState<any[]>([]);
+  const [sellersMap, setSellersMap] = useState<Record<string, any>>({});
 
   // Store Data
   const user = useAppStore(state => state.user);
@@ -25,34 +26,30 @@ export default function HomeScreen() {
   // 1. Real-time Firebase Listener
   useEffect(() => {
     if (!user) return;
+    
     const q = query(collection(db, 'listings'), where('status', '==', 'active'));
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
+    const unsubscribeListings = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
-      
-      const sellerIds = [...new Set(docs.map(d => d.sellerId).filter(Boolean))];
-      const sellersMap: Record<string, any> = {};
-      
-      try {
-        await Promise.all(sellerIds.map(async (sellerId) => {
-          const sellerSnap = await getDoc(doc(db, 'users', sellerId as string));
-          if (sellerSnap.exists()) {
-            sellersMap[sellerId as string] = sellerSnap.data();
-          }
-        }));
-      } catch (err) {
-        console.log("Error fetching sellers for listings:", err);
-      }
-      
-      const enrichedDocs = docs.map(d => ({
-        ...d,
-        sellerData: d.sellerId ? sellersMap[d.sellerId] : null
-      }));
-      
-      setListings(enrichedDocs);
+      setListings(docs);
     }, (error) => {
       console.log("Listing listener error:", error.message);
     });
-    return unsubscribe;
+
+    const qSellers = query(collection(db, 'users'), where('role', '==', 'seller'));
+    const unsubscribeSellers = onSnapshot(qSellers, (snapshot) => {
+      const sMap: Record<string, any> = {};
+      snapshot.forEach(doc => {
+        sMap[doc.id] = doc.data();
+      });
+      setSellersMap(sMap);
+    }, (error) => {
+      console.log("Sellers listener error:", error.message);
+    });
+
+    return () => {
+      unsubscribeListings();
+      unsubscribeSellers();
+    };
   }, [user]);
 
   // 2. Unified Filtering Logic (Category + Search)
@@ -70,7 +67,7 @@ export default function HomeScreen() {
 
       // Search Match (Title or Store)
       const search = searchQuery.toLowerCase();
-      const actualStoreName = deal.sellerData?.storeName || deal.store;
+      const actualStoreName = sellersMap[deal.sellerId]?.storeName || deal.store;
       const matchesSearch = deal.title.toLowerCase().includes(search) ||
         actualStoreName.toLowerCase().includes(search);
 
@@ -226,7 +223,10 @@ export default function HomeScreen() {
                 pathname: "/listing/[id]",
                 params: {
                   id: item.id,
-                  itemData: JSON.stringify(item)
+                  itemData: JSON.stringify({
+                    ...item,
+                    sellerData: sellersMap[item.sellerId]
+                  })
                 }
               })}
               className="bg-white rounded-[24px] border border-gray-100 p-4 mb-4 shadow-sm active:opacity-90"
@@ -248,10 +248,10 @@ export default function HomeScreen() {
                 
                 <View className="flex-1 pr-2 pt-1">
                   <Text className="font-bold text-gray-900 text-[17px] mb-1" numberOfLines={1}>{item.title}</Text>
-                  <Text className="text-gray-500 text-[11px] mb-1.5">{item.sellerData?.storeName || item.store}</Text>
+                  <Text className="text-gray-500 text-[11px] mb-1.5">{sellersMap[item.sellerId]?.storeName || item.store}</Text>
                   <View className="flex-row items-center">
                     <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.sellerData?.storeAddress || item.distance}</Text>
+                    <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{sellersMap[item.sellerId]?.storeAddress || item.distance}</Text>
                   </View>
                 </View>
                 
@@ -276,9 +276,11 @@ export default function HomeScreen() {
                      {item.description || 'A delicious surprise bag containing assorted items and baked goods.'}
                    </Text>
                  </View>
-                 <View className="flex-row items-center bg-white px-2 py-1 rounded-lg border border-gray-100 shadow-sm">
-                    <Text className="font-bold text-yellow-500 text-[12px]">⭐ {item.rating}</Text>
-                 </View>
+                 {sellersMap[item.sellerId]?.averageRating && (
+                   <View className="flex-row items-center bg-white px-2 py-1 rounded-lg border border-gray-100 shadow-sm">
+                      <Text className="font-bold text-yellow-500 text-[12px]">⭐ {sellersMap[item.sellerId].averageRating}</Text>
+                   </View>
+                 )}
               </View>
             </Pressable>
           )

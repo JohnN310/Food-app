@@ -48,7 +48,6 @@ export default function ProfileScreen() {
   const DIETARY_OPTIONS = ['Vegan', 'Vegetarian', 'Gluten-Free', 'Dairy-Free', 'Nut-Free', 'Halal'];
 
   const unreadMessagesCount = useAppStore(state => state.unreadMessagesCount);
-  const [impact, setImpact] = useState({ orders: 0, saved: 0, waste: 0 });
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -111,38 +110,6 @@ export default function ProfileScreen() {
     }
   };
 
-  // Real-time listener for the user's completed orders
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const q = query(
-      collection(db, 'orders'),
-      where('buyerId', '==', user.uid),
-      where('status', '==', 'completed')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let totalOrders = snapshot.docs.length;
-      let totalSaved = 0;
-      let totalWaste = 0;
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        totalSaved += (data.originalPrice || 0) - (data.price || 0);
-        totalWaste += (data.weightSaved || 0.5);
-      });
-
-      setImpact({
-        orders: totalOrders,
-        saved: totalSaved,
-        waste: totalWaste
-      });
-    }, (error) => {
-      console.error("Error fetching impact data:", error);
-    });
-
-    return () => unsubscribe();
-  }, [user?.uid]);
 
   const handleSignOut = async () => {
     try {
@@ -252,35 +219,6 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* Impact Dashboard */}
-        <View className="bg-[#F1F8F4] rounded-[24px] p-5 mb-6 shadow-sm border border-[#E1F0E8]">
-          <View className="flex-row justify-between flex-1 mb-5">
-            <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-white rounded-full items-center justify-center mr-2 shadow-sm border border-[#E1F0E8]">
-                <Image source={require('../../assets/images/mascot_celebrating_1776538614033.png')} style={{ width: 20, height: 20 }} resizeMode="contain" />
-              </View>
-              <View>
-                <Text className="font-bold text-gray-900 text-[15px]">My Impact</Text>
-                <Text className="text-gray-600 text-[11px] mt-0.5">Tap to see full dashboard</Text>
-              </View>
-            </View>
-            <ChevronRight size={20} color="#9CA3AF" className="mt-2" />
-          </View>
-          <View className="flex-row justify-between px-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
-            <View className="items-center flex-1 border-r border-gray-100">
-              <Text className="font-bold text-[#1B7A49] text-[18px] mb-0.5">📦 {impact.orders}</Text>
-              <Text className="text-gray-500 text-[11px] font-medium">Orders</Text>
-            </View>
-            <View className="items-center flex-1 border-r border-gray-100">
-              <Text className="font-bold text-[#1B7A49] text-[18px] mb-0.5">${impact.saved.toFixed(2)}</Text>
-              <Text className="text-gray-500 text-[11px] font-medium">Saved</Text>
-            </View>
-            <View className="items-center flex-1">
-              <Text className="font-bold text-[#1B7A49] text-[18px] mb-0.5">🌿 {impact.waste.toFixed(1)}kg</Text>
-              <Text className="text-gray-500 text-[11px] font-medium">Waste cut</Text>
-            </View>
-          </View>
-        </View>
 
         {/* Account Menu */}
         <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">ACCOUNT</Text>

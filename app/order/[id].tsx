@@ -28,7 +28,7 @@ export default function OrderDetailsScreen() {
 
   const item = order.itemData || {};
 
-  const [sellerData, setSellerData] = useState<any>(null);
+  const [sellerData, setSellerData] = useState<any>(order?.sellerData || null);
 
   useEffect(() => {
     const fetchSeller = async () => {
@@ -98,7 +98,7 @@ export default function OrderDetailsScreen() {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }} showsVerticalScrollIndicator={false}>
         
         {/* Main Status Card */}
         <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm">
@@ -127,7 +127,9 @@ export default function OrderDetailsScreen() {
               <View className="flex-row items-center mt-0.5">
                 <MapPin size={12} color="#9CA3AF" />
                 <Text className="text-gray-500 text-xs ml-1 mr-3">{sellerData?.storeAddress || item.distance}</Text>
-                <Text className="text-yellow-500 text-xs font-bold">⭐ {item.rating}</Text>
+                {sellerData?.averageRating && (
+                  <Text className="text-yellow-500 text-xs font-bold">⭐ {sellerData.averageRating}</Text>
+                )}
               </View>
             </View>
             <Pressable className="flex-row items-center bg-white border border-gray-200 px-4 py-2 rounded-full">

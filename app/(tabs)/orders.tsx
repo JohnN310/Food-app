@@ -3,8 +3,8 @@ import { View, Text, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
-import { ChevronRight, ShoppingBag, Clock, CheckCircle, XCircle, Bell, MessageSquare, QrCode, CalendarPlus, Star, Navigation } from 'lucide-react-native';
-import { doc, updateDoc } from 'firebase/firestore';
+import { ChevronRight, ShoppingBag, Store, Clock, CheckCircle, XCircle, Bell, MessageSquare, QrCode, CalendarPlus, Star, Navigation } from 'lucide-react-native';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 
 const TABS = [
@@ -20,6 +20,7 @@ export default function OrdersScreen() {
   const orders = useAppStore(state => state.orders) || [];
   const unreadMessagesCount = useAppStore(state => state.unreadMessagesCount);
   const [activeTab, setActiveTab] = useState('all');
+  const [draftRatings, setDraftRatings] = useState<Record<string, number>>({});
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
@@ -159,8 +160,8 @@ export default function OrdersScreen() {
                       )}
                     </View>
                     <View className="flex-1 pr-2 pt-1">
-                      <Text className="font-bold text-gray-900 text-[17px] mb-1">{order.sellerData?.storeName || item.store}</Text>
-                      <Text className="text-gray-500 text-[11px] mb-1.5">{order.sellerData?.storeAddress || 'Address not provided'}</Text>
+                      <Text className="font-bold text-gray-900 text-[17px] mb-1" numberOfLines={1}>{item.title}</Text>
+                      <Text className="text-gray-500 text-[11px] mb-1.5" numberOfLines={2}>{item.description || 'No description provided'}</Text>
                       <View className="flex-row items-center">
                         <Clock size={12} color="#6B7280" />
                         <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.time || 'Time not provided'}</Text>
@@ -192,26 +193,100 @@ export default function OrdersScreen() {
                   {/* Inner Card Content Row */}
                   <View className="bg-[#FAFAF5] rounded-2xl p-3 flex-row items-center mb-4 border border-gray-50">
                     <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-3 shadow-sm border border-gray-100">
-                      <ShoppingBag size={20} color={isOrdered ? "#D97706" : "#1B7A49"} />
+                      <Store size={20} color={isOrdered ? "#D97706" : "#1B7A49"} />
                     </View>
                     <View className="flex-1 pr-2">
-                      <Text className="font-bold text-gray-900 text-[14px] mb-0.5">{item.title}</Text>
+                      <Text className="font-bold text-gray-900 text-[14px] mb-0.5" numberOfLines={1}>{order.sellerData?.storeName || item.store}</Text>
                       <Text className="text-gray-500 text-[11px] leading-tight" numberOfLines={2}>
-                        {item.description || 'None'}
+                        {order.sellerData?.storeAddress || 'Address not provided'}
                       </Text>
                     </View>
                   </View>
 
                   {/* Footer Action Area */}
                   {isCompleted ? (
-                    <View className="flex-row items-center justify-between px-1">
-                      <Text className="font-bold text-gray-800 text-[13px]">Rate this order</Text>
-                      <View className="flex-row items-center ml-2">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} size={16} color="#1B7A49" fill="#1B7A49" className="mr-1" />
-                        ))}
+                    <View className="flex-col px-1">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="font-bold text-gray-800 text-[13px]">
+                          {order.rating ? 'Your rating' : 'Rate this order'}
+                        </Text>
+                        <View className="flex-row items-center ml-auto">
+                          {[1, 2, 3, 4, 5].map((s) => {
+                            const currentRating = order.rating || (order.id ? draftRatings[order.id] : 0) || 0;
+                            return (
+                              <Pressable 
+                                key={s} 
+                                onPress={() => {
+                                  if (order.id && !order.rating) setDraftRatings(prev => ({ ...prev, [order.id]: s }));
+                                }}
+                                disabled={!!order.rating}
+                                className="p-1"
+                              >
+                                <Star 
+                                  size={18} 
+                                  color={currentRating >= s ? "#1B7A49" : "#D1D5DB"} 
+                                  fill={currentRating >= s ? "#1B7A49" : "transparent"} 
+                                />
+                              </Pressable>
+                            );
+                          })}
+                        </View>
                       </View>
-                      <ChevronRight size={16} color="#9CA3AF" className="ml-auto" />
+                      {order.id && draftRatings[order.id] > 0 && !order.rating && (
+                        <View className="flex-row items-center justify-between mt-3 mb-1 gap-2 pt-3 border-t border-gray-50">
+                          <Pressable 
+                            onPress={() => {
+                              if (order.id) {
+                                const newDrafts = { ...draftRatings };
+                                delete newDrafts[order.id];
+                                setDraftRatings(newDrafts);
+                              }
+                            }}
+                            className="flex-1 py-3 items-center justify-center rounded-xl bg-gray-100"
+                          >
+                            <Text className="text-gray-600 font-bold text-xs">Cancel</Text>
+                          </Pressable>
+                          <Pressable 
+                            onPress={async () => {
+                              if (order.id) {
+                                try {
+                                  const ratingVal = draftRatings[order.id];
+                                  await updateDoc(doc(db, 'orders', order.id), { rating: ratingVal });
+                                  
+                                  try {
+                                    if (order.sellerId) {
+                                      const sellerRef = doc(db, 'users', order.sellerId);
+                                      const sellerDoc = await getDoc(sellerRef);
+                                      if (sellerDoc.exists()) {
+                                        const data = sellerDoc.data();
+                                        const currentCount = data.ratingCount || 0;
+                                        const currentSum = data.ratingSum || 0;
+                                        await updateDoc(sellerRef, {
+                                          ratingCount: currentCount + 1,
+                                          ratingSum: currentSum + ratingVal,
+                                          averageRating: ((currentSum + ratingVal) / (currentCount + 1)).toFixed(1)
+                                        });
+                                      }
+                                    }
+                                  } catch (sellerUpdateError) {
+                                    console.log("Could not update seller average rating (likely Firebase rules):", sellerUpdateError);
+                                  }
+
+                                  const newDrafts = { ...draftRatings };
+                                  delete newDrafts[order.id];
+                                  setDraftRatings(newDrafts);
+                                  Alert.alert("Success", "Thank you for your feedback!");
+                                } catch (e) {
+                                  Alert.alert("Error", "Failed to submit rating.");
+                                }
+                              }
+                            }}
+                            className="flex-1 py-3 items-center justify-center rounded-xl bg-[#1B7A49]"
+                          >
+                            <Text className="text-white font-bold text-xs">Confirm</Text>
+                          </Pressable>
+                        </View>
+                      )}
                     </View>
                   ) : isCancelled ? (
                     <View className="flex-row items-center justify-between px-1">
