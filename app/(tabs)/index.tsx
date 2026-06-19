@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, Image, Alert, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, SlidersHorizontal, Bell, Heart, MapPin, ShoppingBag } from 'lucide-react-native';
+import { Search, SlidersHorizontal, Bell, Heart, MapPin, ShoppingBag, Clock } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
 import { collection, onSnapshot, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 import { CATEGORY_ICONS } from '@/lib/constants';
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 3958.8; // Radius of the Earth in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  return (R * c).toFixed(1) + " mi";
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -16,6 +28,7 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [listings, setListings] = useState<any[]>([]);
   const [sellersMap, setSellersMap] = useState<Record<string, any>>({});
+  const [buyerLocation, setBuyerLocation] = useState<{lat: number, lon: number} | null>(null);
 
   // Store Data
   const user = useAppStore(state => state.user);
@@ -46,9 +59,22 @@ export default function HomeScreen() {
       console.log("Sellers listener error:", error.message);
     });
 
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.latitude !== undefined && data.longitude !== undefined) {
+          setBuyerLocation({ lat: data.latitude, lon: data.longitude });
+        } else {
+          setBuyerLocation(null);
+        }
+      }
+    });
+
     return () => {
       unsubscribeListings();
       unsubscribeSellers();
+      unsubscribeUser();
     };
   }, [user]);
 
@@ -216,6 +242,16 @@ export default function HomeScreen() {
 
         {filteredDeals.length > 0 ? filteredDeals.map((item) => {
           const isSaved = savedItems.includes(item.id.toString());
+          
+          let computedDistance = null;
+          if (buyerLocation) {
+            const itemLat = item.latitude !== undefined ? item.latitude : sellersMap[item.sellerId]?.latitude;
+            const itemLon = item.longitude !== undefined ? item.longitude : sellersMap[item.sellerId]?.longitude;
+            if (itemLat !== undefined && itemLon !== undefined) {
+              computedDistance = calculateDistance(buyerLocation.lat, buyerLocation.lon, itemLat, itemLon);
+            }
+          }
+
           return (
             <Pressable
               key={item.id}
@@ -249,9 +285,17 @@ export default function HomeScreen() {
                 <View className="flex-1 pr-2 pt-1">
                   <Text className="font-bold text-gray-900 text-[17px] mb-1" numberOfLines={1}>{item.title}</Text>
                   <Text className="text-gray-500 text-[11px] mb-1.5">{sellersMap[item.sellerId]?.storeName || item.store}</Text>
-                  <View className="flex-row items-center">
-                    <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{sellersMap[item.sellerId]?.storeAddress || item.distance}</Text>
+                  <View className="flex-row items-center flex-wrap">
+                    <View className="flex-row items-center mr-3 mt-0.5">
+                      <Clock size={12} color="#6B7280" />
+                      <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.time || "Time not set"}</Text>
+                    </View>
+                    {computedDistance && (
+                      <View className="flex-row items-center mt-0.5">
+                        <MapPin size={12} color="#6B7280" />
+                        <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{computedDistance}</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
                 

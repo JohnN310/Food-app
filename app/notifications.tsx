@@ -10,11 +10,12 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-row items-center px-4 pt-4 pb-4 border-b border-gray-100">
+      <View className="flex-row items-center justify-between px-4 pt-4 pb-4 border-b border-gray-100">
         <Pressable onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm">
           <ArrowLeft size={20} color="#374151" />
         </Pressable>
-        <Text className="font-bold text-gray-900 text-xl ml-4">Notifications</Text>
+        <Text className="font-bold text-gray-900 text-xl">Notifications</Text>
+        <View className="w-10 h-10" />
       </View>
       <View className="flex-1 items-center justify-center -mt-10 px-8">
         <View className="w-24 h-24 bg-brandPrimary-soft rounded-full items-center justify-center mb-6">

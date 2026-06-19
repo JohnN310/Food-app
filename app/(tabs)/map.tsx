@@ -1,121 +1,108 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { Layers, MapPin, Navigation } from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import MapView, { Marker, Callout } from 'react-native-maps';
+import { useAppStore } from '@/store/app-store';
+import { collection, onSnapshot, query, where, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebaseLib';
 
 export default function MapScreen() {
-  const [region] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
+  const user = useAppStore(state => state.user);
+  const [buyerLocation, setBuyerLocation] = useState<{lat: number, lon: number} | null>(null);
+  const [sellersList, setSellersList] = useState<any[]>([]);
+  const mapRef = useRef<MapView>(null);
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    // Fetch sellers
+    const qSellers = query(collection(db, 'users'), where('role', '==', 'seller'));
+    const unsubscribeSellers = onSnapshot(qSellers, (snapshot) => {
+      const sList: any[] = [];
+      snapshot.forEach(docSnap => {
+        sList.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setSellersList(sList);
+    });
+
+    // Fetch buyer location
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.latitude !== undefined && data.longitude !== undefined) {
+          const newLoc = { lat: data.latitude, lon: data.longitude };
+          setBuyerLocation(newLoc);
+          
+          if (!initialized.current) {
+            initialized.current = true;
+            mapRef.current?.animateToRegion({
+              latitude: newLoc.lat,
+              longitude: newLoc.lon,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }, 1000);
+          }
+        }
+      }
+    });
+
+    return () => {
+      unsubscribeSellers();
+      unsubscribeUser();
+    };
+  }, [user]);
 
   return (
-    <View className="flex-1 bg-background relative">
+    <View className="flex-1 bg-white">
       <MapView 
+        ref={mapRef}
         style={StyleSheet.absoluteFillObject}
-        initialRegion={region}
-        customMapStyle={mapStyle}
+        initialRegion={{
+          latitude: 37.78825, // default fallback
+          longitude: -122.4324,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
       >
-        {/* Markers will be rendered here dynamically */}
+        {buyerLocation && (
+          <Marker
+            identifier="buyer-location"
+            coordinate={{ latitude: Number(buyerLocation.lat), longitude: Number(buyerLocation.lon) }}
+            title="Home"
+            description="Your home location"
+            tracksViewChanges={false}
+          >
+            <View className="w-6 h-6 bg-[#1B7A49] rounded-full border-2 border-white shadow-sm items-center justify-center" />
+          </Marker>
+        )}
+        
+        {sellersList.map((seller: any) => {
+          if (seller.latitude && seller.longitude) {
+            return (
+              <Marker
+                key={seller.id}
+                identifier={seller.id}
+                coordinate={{ latitude: Number(seller.latitude), longitude: Number(seller.longitude) }}
+                title={seller.storeName || 'Store'}
+                description={seller.storeAddress || 'Address not provided'}
+                tracksViewChanges={false}
+              >
+                <View className="w-8 h-8 bg-[#E53935] rounded-full border-2 border-white shadow-sm items-center justify-center">
+                  <Text className="text-white text-xs font-bold">🏪</Text>
+                </View>
+                <Callout>
+                  <View className="p-2 w-48">
+                    <Text className="font-bold text-gray-900 mb-1">{seller.storeName || 'Store'}</Text>
+                    <Text className="text-gray-500 text-xs">{seller.storeAddress || 'No address provided'}</Text>
+                  </View>
+                </Callout>
+              </Marker>
+            );
+          }
+          return null;
+        })}
       </MapView>
-
-      {/* Floating Search Bar */}
-      <View className="absolute top-14 left-4 right-4 bg-white rounded-full flex-row items-center px-4 py-3 shadow-md border border-gray-100">
-        <MapPin size={20} color="#1B7A49" />
-        <Text className="flex-1 ml-3 font-medium text-gray-900">Your neighborhood</Text>
-        <Layers size={20} color="#9CA3AF" />
-      </View>
-
-      {/* Map Controls */}
-      <View className="absolute bottom-24 right-4 gap-3">
-        <Pressable className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-md">
-          <Text className="text-gray-600 text-xl font-bold">+</Text>
-        </Pressable>
-        <Pressable className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-md">
-          <Text className="text-gray-600 text-xl font-bold">-</Text>
-        </Pressable>
-        <Pressable className="w-12 h-12 bg-brandPrimary rounded-full items-center justify-center shadow-md mt-2">
-          <Navigation size={20} color="white" fill="white" />
-        </Pressable>
-      </View>
-
-      {/* Bottom Filters */}
-      <View className="absolute bottom-6 left-0 right-0 px-4">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-          <Pressable className="bg-white px-5 py-2 rounded-full border border-gray-200">
-            <Text className="text-gray-700 font-medium">All</Text>
-          </Pressable>
-          <Pressable className="bg-brandAccent-DEFAULT px-5 py-2 rounded-full border border-orange-100">
-            <Text className="text-yellow-900 font-medium">Bakery</Text>
-          </Pressable>
-          <Pressable className="bg-white px-5 py-2 rounded-full border border-gray-200">
-            <Text className="text-gray-700 font-medium">Produce</Text>
-          </Pressable>
-          <Pressable className="bg-white px-5 py-2 rounded-full border border-gray-200">
-            <Text className="text-gray-700 font-medium">Free</Text>
-          </Pressable>
-          <Pressable className="bg-white px-5 py-2 rounded-full border border-gray-200">
-            <Text className="text-gray-700 font-medium">Expiring</Text>
-          </Pressable>
-        </ScrollView>
-      </View>
     </View>
   );
 }
-
-const mapStyle = [
-  {
-    "elementType": "geometry",
-    "stylers": [{"color": "#E9F5ED"}] // soft green tint for map matching mockup
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [{"color": "#523735"}]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [{"color": "#f5f1e6"}]
-  },
-  {
-    "featureType": "administrative",
-    "elementType": "geometry.stroke",
-    "stylers": [{"color": "#c9b2a6"}]
-  },
-  {
-    "featureType": "landscape.natural",
-    "elementType": "geometry",
-    "stylers": [{"color": "#E9F5ED"}]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "geometry",
-    "stylers": [{"color": "#dfd2ae"}]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.fill",
-    "stylers": [{"color": "#93817c"}]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "geometry.fill",
-    "stylers": [{"color": "#C8E6D2"}]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry",
-    "stylers": [{"color": "#f5f1e6"}]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [{"color": "#f8c967"}]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [{"color": "#d9e3f0"}] // light blue/grey
-  }
-];

@@ -22,6 +22,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Modal, Pressable, ScrollView, Text, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const { height } = Dimensions.get('window');
 
@@ -54,6 +55,8 @@ export default function SellerSettingsScreen() {
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [originalData, setOriginalData] = useState<any>(null);
@@ -93,6 +96,8 @@ export default function SellerSettingsScreen() {
           setStoreName(data.storeName || '');
           setStoreDescription(data.storeDescription || '');
           setStoreAddress(data.storeAddress || '');
+          setLatitude(data.latitude || null);
+          setLongitude(data.longitude || null);
           setOriginalData(data);
         } else {
           setUsername('Store Owner');
@@ -111,7 +116,9 @@ export default function SellerSettingsScreen() {
     phone.trim() !== (originalData.phone || '') ||
     storeName.trim() !== (originalData.storeName || '') ||
     storeDescription.trim() !== (originalData.storeDescription || '') ||
-    storeAddress.trim() !== (originalData.storeAddress || '')
+    storeAddress.trim() !== (originalData.storeAddress || '') ||
+    latitude !== (originalData.latitude || null) ||
+    longitude !== (originalData.longitude || null)
   );
 
   const handleSaveProfile = async () => {
@@ -122,20 +129,20 @@ export default function SellerSettingsScreen() {
     }
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
+      const updatePayload: any = {
         username: username.trim(),
         phone: phone.trim(),
         storeName: storeName.trim(),
         storeDescription: storeDescription.trim(),
         storeAddress: storeAddress.trim(),
-      });
+      };
+      if (latitude !== null) updatePayload.latitude = latitude;
+      if (longitude !== null) updatePayload.longitude = longitude;
+
+      await updateDoc(doc(db, 'users', user.uid), updatePayload);
       setOriginalData({
         ...originalData,
-        username: username.trim(),
-        phone: phone.trim(),
-        storeName: storeName.trim(),
-        storeDescription: storeDescription.trim(),
-        storeAddress: storeAddress.trim(),
+        ...updatePayload
       });
       closeEditModal();
     } catch (error) {
@@ -198,31 +205,36 @@ export default function SellerSettingsScreen() {
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Display Name</Text>
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
                   <User size={20} color="#9CA3AF" />
-                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" placeholderTextColor="#6B7280" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
                 </View>
 
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Phone Number</Text>
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
                   <Phone size={20} color="#9CA3AF" />
-                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
                 </View>
 
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Store Name</Text>
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
                   <Store size={20} color="#9CA3AF" />
-                  <TextInput value={storeName} onChangeText={setStoreName} placeholder="Store Name" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                  <TextInput value={storeName} onChangeText={setStoreName} placeholder="Store Name" placeholderTextColor="#6B7280" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
                 </View>
 
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Store Description</Text>
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <TextInput value={storeDescription} onChangeText={setStoreDescription} placeholder="Short description" multiline className="flex-1 text-gray-900 font-medium text-base h-20" textAlignVertical="top" />
+                  <TextInput value={storeDescription} onChangeText={setStoreDescription} placeholder="Short description" placeholderTextColor="#6B7280" multiline className="flex-1 text-gray-900 font-medium text-base h-20" textAlignVertical="top" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-4">Store Address</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-6 shadow-sm">
-                  <MapPin size={20} color="#9CA3AF" />
-                  <TextInput value={storeAddress} onChangeText={setStoreAddress} placeholder="123 Bakery St, City" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
-                </View>
+                <Text className="text-gray-500 text-sm font-semibold mb-2">Store Address</Text>
+                <AddressAutocomplete
+                  value={storeAddress}
+                  onChangeAddress={(address, lat, lon) => {
+                    setStoreAddress(address);
+                    if (lat !== undefined) setLatitude(lat);
+                    if (lon !== undefined) setLongitude(lon);
+                  }}
+                  placeholder="123 Bakery St, City"
+                />
 
                 {hasChanges ? (
                   <Pressable onPress={handleSaveProfile} disabled={isSaving} className={`flex-row items-center justify-center p-4 rounded-full mb-10 ${isSaving ? 'bg-brandPrimary-hover opacity-70' : 'bg-brandPrimary'}`}>

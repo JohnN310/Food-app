@@ -7,6 +7,7 @@ import { ChevronRight, CreditCard, Gift, HelpCircle, Key, LogOut, MessageCircle,
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const { height } = Dimensions.get('window');
 
@@ -18,6 +19,9 @@ export default function ProfileScreen() {
   const user = useAppStore(state => state.user);
   const [username, setUsername] = useState('Loading...');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -58,6 +62,9 @@ export default function ProfileScreen() {
           const data = userDoc.data();
           setUsername(data.username || 'Valued User');
           setPhone(data.phone || '');
+          setAddress(data.address || '');
+          setLatitude(data.latitude || null);
+          setLongitude(data.longitude || null);
           setDietaryPrefs(data.dietaryPreferences || []);
           setOriginalData(data);
         } else {
@@ -79,6 +86,9 @@ export default function ProfileScreen() {
   const hasChanges = originalData && (
     username.trim() !== (originalData.username || 'Valued User') ||
     phone.trim() !== (originalData.phone || '') ||
+    address.trim() !== (originalData.address || '') ||
+    latitude !== (originalData.latitude || null) ||
+    longitude !== (originalData.longitude || null) ||
     JSON.stringify([...dietaryPrefs].sort()) !== JSON.stringify([...(originalData.dietaryPreferences || [])].sort())
   );
 
@@ -90,16 +100,19 @@ export default function ProfileScreen() {
     }
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
+      const updatePayload: any = {
         username: username.trim(),
         phone: phone.trim(),
+        address: address.trim(),
         dietaryPreferences: dietaryPrefs
-      });
+      };
+      if (latitude !== null) updatePayload.latitude = latitude;
+      if (longitude !== null) updatePayload.longitude = longitude;
+
+      await updateDoc(doc(db, 'users', user.uid), updatePayload);
       setOriginalData({
         ...originalData,
-        username: username.trim(),
-        phone: phone.trim(),
-        dietaryPreferences: dietaryPrefs
+        ...updatePayload
       });
       closeEditModal();
     } catch (error) {
@@ -163,14 +176,25 @@ export default function ProfileScreen() {
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Display Name</Text>
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
                   <User size={20} color="#9CA3AF" />
-                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" placeholderTextColor="#6B7280" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
                 </View>
 
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Phone Number</Text>
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
                   <Phone size={20} color="#9CA3AF" />
-                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
                 </View>
+
+                <Text className="text-gray-500 text-sm font-semibold mb-2">Home Location</Text>
+                <AddressAutocomplete
+                  value={address}
+                  onChangeAddress={(newAddress, lat, lon) => {
+                    setAddress(newAddress);
+                    if (lat !== undefined) setLatitude(lat);
+                    if (lon !== undefined) setLongitude(lon);
+                  }}
+                  placeholder="e.g. 123 Main St, Portland"
+                />
 
                 <Text className="font-bold text-gray-400 text-xs tracking-wider mb-3 mt-2">DIETARY PREFERENCES</Text>
                 <View className="flex-row flex-wrap gap-2 mb-6">

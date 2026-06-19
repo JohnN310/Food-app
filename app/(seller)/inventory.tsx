@@ -1,7 +1,7 @@
 import { CATEGORY_ICONS } from '@/lib/constants';
 import { db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { CheckCircle, ChevronRight, DollarSign, Package, Plus, QrCode, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View, Switch } from 'react-native';
@@ -221,11 +221,24 @@ export default function InventoryScreen() {
       if (editingId) {
         await updateDoc(doc(db, 'listings', editingId), payload);
       } else {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        let storeName = "Your Store";
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          if (userData.storeName) storeName = userData.storeName;
+          if (userData.latitude !== undefined && userData.longitude !== undefined) {
+            payload.latitude = userData.latitude;
+            payload.longitude = userData.longitude;
+          }
+        }
+
         payload.sellerId = user.uid;
         payload.status = 'active';
         payload.createdAt = serverTimestamp();
         payload.image = 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=500&auto=format&fit=crop';
-        payload.store = "Your Store";
+        payload.store = storeName;
         payload.rating = "4.8";
         payload.distance = "0.2 mi";
         payload.badges = [{ text: "Fresh Today", type: "green" }];
