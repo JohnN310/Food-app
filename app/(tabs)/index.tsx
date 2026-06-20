@@ -40,7 +40,7 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!user) return;
     
-    const q = query(collection(db, 'listings'), where('status', '==', 'active'));
+    const q = query(collection(db, 'listings'), where('status', 'in', ['active', 'sold']));
     const unsubscribeListings = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
       setListings(docs);
@@ -251,6 +251,8 @@ export default function HomeScreen() {
               computedDistance = calculateDistance(buyerLocation.lat, buyerLocation.lon, itemLat, itemLon);
             }
           }
+          
+          const isOutOfStock = (item.quantity !== undefined && item.quantity <= 0) || item.status === 'sold';
 
           return (
             <Pressable
@@ -265,7 +267,7 @@ export default function HomeScreen() {
                   })
                 }
               })}
-              className="bg-white rounded-[24px] border border-gray-100 p-4 mb-4 shadow-sm active:opacity-90"
+              className={`bg-white rounded-[24px] border border-gray-100 p-4 mb-4 shadow-sm active:opacity-90 ${isOutOfStock ? 'opacity-60' : ''}`}
             >
               {/* Header Row */}
               <View className="flex-row items-start mb-4">
@@ -283,7 +285,9 @@ export default function HomeScreen() {
                 </View>
                 
                 <View className="flex-1 pr-2 pt-1">
-                  <Text className="font-bold text-gray-900 text-[17px] mb-1" numberOfLines={1}>{item.title}</Text>
+                  <View className="flex-row items-center mb-1">
+                    <Text className="font-bold text-gray-900 text-[17px] flex-1" numberOfLines={1}>{item.title}</Text>
+                  </View>
                   <Text className="text-gray-500 text-[11px] mb-1.5">{sellersMap[item.sellerId]?.storeName || item.store}</Text>
                   <View className="flex-row items-center flex-wrap">
                     <View className="flex-row items-center mr-3 mt-0.5">
@@ -300,12 +304,21 @@ export default function HomeScreen() {
                 </View>
                 
                 <View className="items-end pt-1">
-                  <Pressable
-                    onPress={(e) => { e.stopPropagation(); toggleSavedItem(item.id.toString()); }}
-                    className="p-1 mb-1 bg-gray-50 rounded-full border border-gray-100"
-                  >
-                    <Heart size={16} color={isSaved ? "#E53935" : "#9CA3AF"} fill={isSaved ? "#E53935" : "transparent"} />
-                  </Pressable>
+                  <View className="flex-row items-center">
+                    {isOutOfStock ? (
+                      <View className="bg-red-50 px-2 py-0.5 rounded border border-red-100 mr-2">
+                        <Text className="text-red-500 font-bold text-[10px]">Sold Out</Text>
+                      </View>
+                    ) : (item.quantity !== undefined && item.quantity <= 10) ? (
+                      <Text className="text-orange-600 font-bold text-[10px] mr-2">Only {item.quantity} left!</Text>
+                    ) : null}
+                    <Pressable
+                      onPress={(e) => { e.stopPropagation(); toggleSavedItem(item.id.toString()); }}
+                      className="p-1 mb-1 bg-gray-50 rounded-full border border-gray-100"
+                    >
+                      <Heart size={16} color={isSaved ? "#E53935" : "#9CA3AF"} fill={isSaved ? "#E53935" : "transparent"} />
+                    </Pressable>
+                  </View>
                   <View className="flex-row items-end gap-1 mt-1">
                     <Text className="font-bold text-brandPrimary text-[17px]">{item.price}</Text>
                   </View>

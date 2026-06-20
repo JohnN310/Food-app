@@ -163,21 +163,21 @@ export default function SellerDashboard() {
 
                   {/* Actions for Seller */}
                   {isOrdered && (
-                    <Pressable 
+                    <Pressable
                       onPress={() => handleUpdateOrderStatus(order.id, 'ready')}
-                      className="bg-brandPrimary py-3 rounded-xl items-center flex-row justify-center mt-2"
+                      className="bg-brandPrimary px-4 py-2.5 rounded-xl flex-row items-center justify-center flex-1 mr-2"
                     >
-                      <QrCode size={16} color="white" className="mr-2" />
-                      <Text className="text-white font-bold text-sm">Mark as Ready for Pickup</Text>
+                      <QrCode size={16} color="white" className="mr-1.5" />
+                      <Text className="text-white font-bold text-sm"> Mark as Ready for Pickup</Text>
                     </Pressable>
                   )}
                   {isReady && (
-                    <Pressable 
+                    <Pressable
                       onPress={() => handleUpdateOrderStatus(order.id, 'completed')}
-                      className="bg-[#1B7A49] py-3 rounded-xl items-center flex-row justify-center mt-2"
+                      className="bg-brandPrimary px-4 py-2.5 rounded-xl flex-row items-center justify-center flex-1 ml-2"
                     >
-                      <CheckCircle size={16} color="white" className="mr-2" />
-                      <Text className="text-white font-bold text-sm">Mark as Completed</Text>
+                      <CheckCircle size={16} color="white" className="mr-1.5" />
+                      <Text className="text-white font-bold text-sm"> Mark as Completed</Text>
                     </Pressable>
                   )}
                 </View>

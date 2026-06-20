@@ -4,11 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, doc, onSnapshot, query, updateDoc, where, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
+import { useRouter } from 'expo-router';
 import { CATEGORY_ICONS } from '@/lib/constants';
-import { CheckCircle, QrCode } from 'lucide-react-native';
+import { CheckCircle, QrCode, MessageSquare } from 'lucide-react-native';
 
 export default function SellerOrdersScreen() {
   const user = useAppStore(state => state.user);
+  const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,13 +100,24 @@ export default function SellerOrdersScreen() {
                           <Text className="font-bold text-gray-500 text-xs uppercase tracking-widest">
                             Order #{order.id.substring(0, 8).toUpperCase()}
                           </Text>
-                          <Pressable
-                            onPress={() => handleUpdateOrderStatus(order.id, isOrdered ? 'ready' : 'completed')}
-                            className="bg-brandPrimary px-4 py-2 rounded-xl flex-row items-center"
-                          >
-                            {isOrdered ? <QrCode size={16} color="white" className="mr-1.5" /> : <CheckCircle size={16} color="white" className="mr-1.5" />}
-                            <Text className="text-white font-bold text-sm">{isOrdered ? 'Mark Ready' : 'Mark Completed'}</Text>
-                          </Pressable>
+                          <View className="flex-row gap-2">
+                            <Pressable
+                              onPress={() => router.push(`/chat/${order.id}` as any)}
+                              className="bg-gray-100 p-2 rounded-xl items-center justify-center relative"
+                            >
+                              <MessageSquare size={20} color="#374151" />
+                              {order.hasUnreadSeller && (
+                                <View className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
+                              )}
+                            </Pressable>
+                            <Pressable
+                              onPress={() => handleUpdateOrderStatus(order.id, isOrdered ? 'ready' : 'completed')}
+                              className="bg-brandPrimary px-4 py-2 rounded-xl flex-row items-center"
+                            >
+                              {isOrdered ? <QrCode size={16} color="white" className="mr-1.5" /> : <CheckCircle size={16} color="white" className="mr-1.5" />}
+                              <Text className="text-white font-bold text-sm">{isOrdered ? ' Mark Ready' : ' Mark Completed'}</Text>
+                            </Pressable>
+                          </View>
                         </View>
                       </View>
                     );

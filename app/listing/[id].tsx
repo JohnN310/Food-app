@@ -59,6 +59,12 @@ export default function ListingDetailScreen() {
       Alert.alert("Error", "You must be logged in to reserve an item.");
       return;
     }
+
+    if ((item.quantity ?? 1) <= 0) {
+      Alert.alert("Out of Stock", "This item is no longer available.");
+      return;
+    }
+
     try {
       const orderData = {
         buyerId: user.uid,
@@ -71,8 +77,14 @@ export default function ListingDetailScreen() {
       };
       const docRef = await addDoc(collection(db, 'orders'), orderData);
 
-      // Keep the listing active instead of marking it sold
-      // await updateDoc(doc(db, 'listings', item.id), { status: 'sold' });
+      // Decrement the stock count and mark as sold if it reaches 0
+      const newQuantity = Math.max(0, (item.quantity ?? 1) - purchaseQuantity);
+      const updatePayload: any = { quantity: newQuantity };
+      if (newQuantity === 0) {
+        updatePayload.status = 'sold';
+      }
+      
+      await updateDoc(doc(db, 'listings', item.id), updatePayload);
 
       closeModal();
       setTimeout(() => {
@@ -218,9 +230,14 @@ export default function ListingDetailScreen() {
                     </View>
                   )}
                 </View>
-                <View className="flex-row items-center mb-6">
-                  <Store size={16} color="#4B5563" />
-                  <Text className="text-gray-600 font-medium ml-2 text-base">{item.sellerData?.storeName || item.store}</Text>
+                <View className="flex-row items-center justify-between mb-6">
+                  <View className="flex-row items-center">
+                    <Store size={16} color="#4B5563" />
+                    <Text className="text-gray-600 font-medium ml-2 text-base">{item.sellerData?.storeName || item.store}</Text>
+                  </View>
+                  <Text className={`font-bold text-sm ${(item.quantity ?? 1) <= 0 ? 'text-red-500' : ((item.quantity ?? 1) <= 10 ? 'text-orange-600' : 'text-brandPrimary')}`}>
+                    {(item.quantity ?? 1) <= 0 ? 'Out of stock' : ((item.quantity ?? 1) <= 10 ? `Only ${item.quantity ?? 1} left!` : 'In stock')}
+                  </Text>
                 </View>
 
                 {/* Pricing Block */}
@@ -313,7 +330,14 @@ export default function ListingDetailScreen() {
                     </Pressable>
                     <Text className="px-4 font-bold text-gray-900 text-lg">{purchaseQuantity}</Text>
                     <Pressable 
-                      onPress={() => setPurchaseQuantity(purchaseQuantity + 1)}
+                      onPress={() => {
+                        const maxQty = item.quantity ?? 1;
+                        if (purchaseQuantity < maxQty) {
+                          setPurchaseQuantity(purchaseQuantity + 1);
+                        } else {
+                          Alert.alert("Stock Limit Reached", `You can only reserve up to ${maxQty} of this item.`);
+                        }
+                      }}
                       className="w-10 h-10 items-center justify-center rounded-full bg-brandPrimary"
                     >
                       <Text className="text-white font-bold text-xl">+</Text>
@@ -321,11 +345,19 @@ export default function ListingDetailScreen() {
                   </View>
                 </View>
                 <Pressable
-                  onPress={openModal}
-                  className="w-full py-5 rounded-full items-center shadow-lg active:opacity-90 bg-brandPrimary shadow-brandPrimary/30"
+                  onPress={() => {
+                    if ((item.quantity ?? 1) <= 0) return;
+                    openModal();
+                  }}
+                  disabled={(item.quantity ?? 1) <= 0}
+                  className={`w-full py-5 rounded-full items-center shadow-lg ${
+                    (item.quantity ?? 1) <= 0 
+                      ? 'bg-gray-300 shadow-none' 
+                      : 'active:opacity-90 bg-brandPrimary shadow-brandPrimary/30'
+                  }`}
                 >
                   <Text className="text-white font-bold text-xl tracking-tight">
-                    Reserve Now
+                    {(item.quantity ?? 1) <= 0 ? 'Out of Stock' : 'Reserve Now'}
                   </Text>
                 </Pressable>
               </View>

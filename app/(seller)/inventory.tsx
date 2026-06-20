@@ -28,6 +28,7 @@ export default function InventoryScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [message, setMessage] = useState('');
+  const [stockCount, setStockCount] = useState('1');
   const [isHidden, setIsHidden] = useState(false);
   const [originalItem, setOriginalItem] = useState<any>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -174,6 +175,7 @@ export default function InventoryScreen() {
     }
     
     setMessage(item.message || '');
+    setStockCount(item.quantity !== undefined ? item.quantity.toString() : '1');
     setIsHidden(item.status === 'hidden');
     setOriginalItem({
       title: item.title,
@@ -183,6 +185,7 @@ export default function InventoryScreen() {
       discountPrice: item.price.replace('$', ''),
       pickupDate: item.pickupTimestamp ? new Date(item.pickupTimestamp) : new Date(),
       message: item.message || '',
+      stockCount: item.quantity !== undefined ? item.quantity.toString() : '1',
       isHidden: item.status === 'hidden',
     });
     setEditingId(item.id);
@@ -192,13 +195,14 @@ export default function InventoryScreen() {
   };
 
   const handleSaveListing = async () => {
-    if (!title || !originalPrice || !discountPrice) {
+    if (!title || !originalPrice || !discountPrice || !stockCount) {
       Alert.alert("Missing Fields", "Please fill in all required fields.");
       return;
     }
 
     setSubmitting(true);
     try {
+      const parsedStock = parseInt(stockCount, 10);
       const payload: any = {
         title,
         description,
@@ -209,7 +213,7 @@ export default function InventoryScreen() {
         time: `${pickupDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${pickupDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
         pickupTimestamp: pickupDate.getTime(),
         message,
-        quantity: 1,
+        quantity: isNaN(parsedStock) ? 1 : Math.max(0, parsedStock),
       };
 
       if (isHidden) {
@@ -261,6 +265,7 @@ export default function InventoryScreen() {
     setDiscountPrice('');
     setPickupDate(new Date());
     setMessage('');
+    setStockCount('1');
     setIsHidden(false);
     setOriginalItem(null);
     setEditingId(null);
@@ -282,9 +287,10 @@ export default function InventoryScreen() {
       discountPrice !== originalItem.discountPrice ||
       pickupDate.getTime() !== originalItem.pickupDate?.getTime() ||
       message !== originalItem.message ||
+      stockCount !== originalItem.stockCount ||
       isHidden !== originalItem.isHidden
     );
-  }, [title, description, category, originalPrice, discountPrice, pickupDate, message, isHidden, editingId, originalItem, isRelistMode]);
+  }, [title, description, category, originalPrice, discountPrice, pickupDate, message, stockCount, isHidden, editingId, originalItem, isRelistMode]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -335,6 +341,7 @@ export default function InventoryScreen() {
                         <Text className="text-brandPrimary font-bold">{item.price}</Text>
                         <Text className="text-gray-400 line-through text-xs">{item.oldPrice}</Text>
                       </View>
+                      <Text className="text-gray-500 text-xs mt-1">Stock: {item.quantity ?? 1}</Text>
                     </View>
                     <View className="justify-center">
                       <ChevronRight size={20} color="#D1D5DB" />
@@ -414,6 +421,7 @@ export default function InventoryScreen() {
                   <TextInput
                     className="bg-white px-4 py-4 rounded-2xl border border-gray-100 text-gray-900"
                     placeholder="e.g. Sourdough Loaf (Fresh)"
+                    placeholderTextColor="#6B7280"
                     value={title}
                     onChangeText={setTitle}
                   />
@@ -424,6 +432,7 @@ export default function InventoryScreen() {
                   <TextInput
                     className="bg-white px-4 py-4 rounded-2xl border border-gray-100 text-gray-900 h-24"
                     placeholder="Tell buyers about this item..."
+                    placeholderTextColor="#6B7280"
                     value={description}
                     onChangeText={setDescription}
                     multiline
@@ -454,6 +463,7 @@ export default function InventoryScreen() {
                       <TextInput
                         className="flex-1 ml-2 text-gray-900"
                         placeholder="0.00"
+                        placeholderTextColor="#6B7280"
                         keyboardType="numeric"
                         value={originalPrice}
                         onChangeText={setOriginalPrice}
@@ -467,11 +477,27 @@ export default function InventoryScreen() {
                       <TextInput
                         className="flex-1 ml-2 text-gray-900"
                         placeholder="0.00"
+                        placeholderTextColor="#6B7280"
                         keyboardType="numeric"
                         value={discountPrice}
                         onChangeText={setDiscountPrice}
                       />
                     </View>
+                  </View>
+                </View>
+
+                <View className="mt-4">
+                  <Text className="text-gray-700 font-bold mb-2 ml-1">Stock Quantity</Text>
+                  <View className="bg-white rounded-2xl border border-gray-100 flex-row items-center px-4 py-4">
+                    <Package size={16} color="#9CA3AF" />
+                    <TextInput
+                      className="flex-1 ml-2 text-gray-900"
+                      placeholder="1"
+                      placeholderTextColor="#6B7280"
+                      keyboardType="numeric"
+                      value={stockCount}
+                      onChangeText={setStockCount}
+                    />
                   </View>
                 </View>
 
@@ -615,7 +641,7 @@ export default function InventoryScreen() {
                             className="bg-brandPrimary px-3 py-2 rounded-lg flex-row items-center"
                           >
                             {isOrdered ? <QrCode size={12} color="white" className="mr-1" /> : <CheckCircle size={12} color="white" className="mr-1" />}
-                            <Text className="text-white font-bold text-[11px]">{isOrdered ? 'Mark Ready' : 'Mark Completed'}</Text>
+                            <Text className="text-white font-bold text-[11px]">{isOrdered ? ' Mark Ready' : ' Mark Completed'}</Text>
                           </Pressable>
                         </View>
                       );

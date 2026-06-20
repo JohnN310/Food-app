@@ -218,6 +218,14 @@ function RootLayoutNav() {
           }}
         />
 
+        <Stack.Screen
+          name="chat/[orderId]"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right'
+          }}
+        />
+
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>

@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/app-store';
 import { ChevronRight, ShoppingBag, Store, Clock, CheckCircle, XCircle, Bell, MessageSquare, QrCode, CalendarPlus, Star, Navigation } from 'lucide-react-native';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
+import { openDirections } from '@/lib/utils';
 
 const TABS = [
   { id: 'all', label: 'All Orders', icon: ShoppingBag },
@@ -193,7 +194,7 @@ export default function OrdersScreen() {
                   {/* Inner Card Content Row */}
                   <View className="bg-[#FAFAF5] rounded-2xl p-3 flex-row items-center mb-4 border border-gray-50">
                     <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-3 shadow-sm border border-gray-100">
-                      <Store size={20} color={isOrdered ? "#D97706" : "#1B7A49"} />
+                      <Store size={20} color="#1B7A49" />
                     </View>
                     <View className="flex-1 pr-2">
                       <Text className="font-bold text-gray-900 text-[14px] mb-0.5" numberOfLines={1}>{order.sellerData?.storeName || item.store}</Text>
@@ -294,13 +295,24 @@ export default function OrdersScreen() {
                     </View>
                   ) : (
                     <View className="flex-row justify-between">
-                      <Pressable className="flex-1 flex-row items-center justify-center py-3 px-2 border border-gray-200 rounded-xl mr-3 bg-white">
-                        <MessageSquare size={16} color="#374151" />
-                        <Text className="text-gray-700 font-bold text-[13px] ml-2">Message store</Text>
+                      <Pressable 
+                        onPress={() => router.push(`/chat/${order.id}` as any)}
+                        className="flex-1 flex-row items-center justify-center py-3 px-2 border border-gray-200 rounded-xl mr-3 bg-white"
+                      >
+                        <View className="relative">
+                          <MessageSquare size={16} color="#4B5563" />
+                          {order.hasUnreadBuyer && (
+                            <View className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
+                          )}
+                        </View>
+                        <Text className={`font-medium ml-2 text-sm ${order.hasUnreadBuyer ? 'text-gray-900' : 'text-gray-600'}`}>Message store</Text>
                       </Pressable>
                       
                       {isReady ? (
-                        <Pressable className="flex-1 flex-row items-center justify-center py-3 px-2 border border-brandPrimary/30 rounded-xl bg-white">
+                        <Pressable 
+                          onPress={() => openDirections(order.sellerData?.storeAddress || '', order.sellerData?.storeName || item.store)}
+                          className="flex-1 flex-row items-center justify-center py-3 px-2 border border-brandPrimary/30 rounded-xl bg-white active:opacity-70"
+                        >
                           <Navigation size={16} color="#1B7A49" />
                           <Text className="text-brandPrimary font-bold text-[13px] ml-2">
                             Get directions

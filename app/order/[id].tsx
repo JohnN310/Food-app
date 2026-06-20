@@ -1,17 +1,18 @@
-import React from 'react';
-import { View, Text, ScrollView, Pressable, Image, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useAppStore } from '@/store/app-store';
-import { ArrowLeft, Clock, MapPin, MessageSquare, ShieldCheck, HelpCircle, Navigation, ShoppingBag, CheckCircle, XCircle } from 'lucide-react-native';
 import { db } from '@/lib/firebaseLib';
+import { useAppStore } from '@/store/app-store';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { ArrowLeft, CheckCircle, Clock, HelpCircle, MapPin, MessageSquare, Navigation, ShieldCheck, ShoppingBag, XCircle } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { openDirections } from '@/lib/utils';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  
+  const user = useAppStore(state => state.user);
+
   const orders = useAppStore(state => state.orders) || [];
   const order = orders.find(o => o.id === id);
 
@@ -27,6 +28,8 @@ export default function OrderDetailsScreen() {
   }
 
   const item = order.itemData || {};
+  const isSeller = user?.uid === order.sellerId;
+  const hasUnread = isSeller ? order.hasUnreadSeller : order.hasUnreadBuyer;
 
   const [sellerData, setSellerData] = useState<any>(order?.sellerData || null);
 
@@ -56,30 +59,30 @@ export default function OrderDetailsScreen() {
   const isOrdered = order.status === 'ordered';
   const isCancelled = order.status === 'cancelled';
 
-  const badgeBg = isCompleted ? 'bg-brandPrimary-soft border-brandPrimary/20' : 
-                 isCancelled ? 'bg-gray-100 border-gray-200' : 
-                 isReady ? 'bg-brandPrimary-soft border-brandPrimary/20' : 
-                 isOrdered ? 'bg-orange-50 border-orange-200' : 'bg-gray-100 border-gray-200';
-                 
-  const badgeTextCol = isCompleted ? 'text-brandPrimary' : 
-                       isCancelled ? 'text-gray-500' : 
-                       isReady ? 'text-brandPrimary' : 
-                       isOrdered ? 'text-orange-600' : 'text-gray-500';
-                       
-  const statusText = isCompleted ? 'Completed' : 
-                     isCancelled ? 'Cancelled' : 
-                     isReady ? 'Ready for pickup' : 
-                     isOrdered ? 'Ordered' : 'Unknown';
-                     
+  const badgeBg = isCompleted ? 'bg-brandPrimary-soft border-brandPrimary/20' :
+    isCancelled ? 'bg-gray-100 border-gray-200' :
+      isReady ? 'bg-brandPrimary-soft border-brandPrimary/20' :
+        isOrdered ? 'bg-orange-50 border-orange-200' : 'bg-gray-100 border-gray-200';
+
+  const badgeTextCol = isCompleted ? 'text-brandPrimary' :
+    isCancelled ? 'text-gray-500' :
+      isReady ? 'text-brandPrimary' :
+        isOrdered ? 'text-orange-600' : 'text-gray-500';
+
+  const statusText = isCompleted ? 'Completed' :
+    isCancelled ? 'Cancelled' :
+      isReady ? 'Ready for pickup' :
+        isOrdered ? 'Ordered' : 'Unknown';
+
   const StatusIcon = isCompleted ? CheckCircle :
-                     isCancelled ? XCircle :
-                     isReady ? ShoppingBag :
-                     isOrdered ? Clock : HelpCircle;
-                     
+    isCancelled ? XCircle :
+      isReady ? ShoppingBag :
+        isOrdered ? Clock : HelpCircle;
+
   const iconColor = isCompleted ? '#1B7A49' :
-                    isCancelled ? '#6B7280' :
-                    isReady ? '#1B7A49' :
-                    isOrdered ? '#EA580C' : '#6B7280';
+    isCancelled ? '#6B7280' :
+      isReady ? '#1B7A49' :
+        isOrdered ? '#EA580C' : '#6B7280';
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAF5]" edges={['top']}>
@@ -99,7 +102,7 @@ export default function OrderDetailsScreen() {
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }} showsVerticalScrollIndicator={false}>
-        
+
         {/* Main Status Card */}
         <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm">
           <View className="flex-row justify-between items-start mb-2">
@@ -116,7 +119,7 @@ export default function OrderDetailsScreen() {
               </View>
             </View>
           </View>
-          
+
           <View className="h-[1px] bg-gray-100 my-4" />
 
           {/* Store Info */}
@@ -125,32 +128,24 @@ export default function OrderDetailsScreen() {
             <View className="flex-1 ml-3">
               <Text className="font-bold text-gray-900 text-base">{sellerData?.storeName || item.store}</Text>
               <View className="flex-row items-center mt-0.5">
-                <MapPin size={12} color="#9CA3AF" />
-                <Text className="text-gray-500 text-xs ml-1 mr-3">{sellerData?.storeAddress || item.distance}</Text>
-                {sellerData?.averageRating && (
-                  <Text className="text-yellow-500 text-xs font-bold">⭐ {sellerData.averageRating}</Text>
-                )}
+                <Text className="text-gray-500 text-xs mr-3">{sellerData?.storeAddress || item.distance}</Text>
               </View>
             </View>
-            <Pressable className="flex-row items-center bg-white border border-gray-200 px-4 py-2 rounded-full">
-              <MessageSquare size={16} color="#374151" />
-              <Text className="text-gray-700 font-medium ml-2 text-sm">Message</Text>
+            <Pressable 
+              onPress={() => router.push(`/chat/${order.id}` as any)}
+              className="flex-row items-center bg-white border border-gray-200 px-4 py-2 rounded-full"
+            >
+              <View className="relative">
+                <MessageSquare size={16} color="#374151" />
+                {hasUnread && (
+                  <View className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
+                )}
+              </View>
+              <Text className={`font-medium ml-2 text-sm ${hasUnread ? 'text-gray-900' : 'text-gray-700'}`}>Message</Text>
             </Pressable>
           </View>
 
-          {/* Impact Banner inside the card */}
-          <View className="mt-5 bg-[#F1F8F4] rounded-2xl p-4 flex-row items-center border border-[#E1F0E8]">
-            <ShieldCheck size={28} color="#1B7A49" />
-            <View className="flex-1 ml-3">
-              <Text className="text-brandPrimary font-medium text-xs leading-snug">
-                Great choice! You're saving food and making a positive impact.
-              </Text>
-            </View>
-            <View className="ml-4 items-end">
-              <Text className="text-brandPrimary font-bold text-sm">🌿 1.2 kg</Text>
-              <Text className="text-brandPrimary/70 text-[10px]">Food saved</Text>
-            </View>
-          </View>
+
         </View>
 
         {/* Order Items */}
@@ -195,14 +190,17 @@ export default function OrderDetailsScreen() {
               <Text className="font-bold text-gray-900">{sellerData?.storeName || item.store}</Text>
               <Text className="text-gray-500 text-xs">{sellerData?.storeAddress || 'Address not provided'}</Text>
             </View>
-            <Pressable className="flex-row items-center bg-white border border-brandPrimary/30 px-3 py-2 rounded-full">
+            <Pressable 
+              onPress={() => openDirections(sellerData?.storeAddress || '', sellerData?.storeName || item.store)}
+              className="flex-row items-center bg-white border border-brandPrimary/30 px-3 py-2 rounded-full active:opacity-70"
+            >
               <Navigation size={14} color="#1B7A49" />
               <Text className="text-brandPrimary font-medium ml-1.5 text-xs">Get directions</Text>
             </Pressable>
           </View>
-          
+
           <View className="h-[1px] bg-gray-100 mb-5 ml-14" />
-          
+
           <View className="flex-row items-center">
             <View className="w-10 h-10 bg-[#FAFAF5] rounded-full items-center justify-center mr-4 border border-gray-100">
               <Clock size={20} color="#1B7A49" />
@@ -211,9 +209,7 @@ export default function OrderDetailsScreen() {
               <Text className="text-gray-500 text-xs mb-0.5">Pickup time</Text>
               <Text className="font-bold text-gray-900">{item.time || '10:00 AM - 10:30 AM'}</Text>
             </View>
-            <View className="w-24">
-              <Text className="text-gray-400 text-right text-[10px] leading-tight">Please pickup within the time window</Text>
-            </View>
+
           </View>
         </View>
 
