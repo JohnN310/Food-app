@@ -25,7 +25,9 @@ export default function InventoryScreen() {
   const [originalPrice, setOriginalPrice] = useState('');
   const [discountPrice, setDiscountPrice] = useState('');
   const [pickupDate, setPickupDate] = useState<Date>(new Date());
+  const [expiryDate, setExpiryDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showExpiryDatePicker, setShowExpiryDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [message, setMessage] = useState('');
   const [stockCount, setStockCount] = useState('1');
@@ -173,6 +175,12 @@ export default function InventoryScreen() {
     } else {
       setPickupDate(new Date());
     }
+
+    if (item.expiryTimestamp) {
+      setExpiryDate(new Date(item.expiryTimestamp));
+    } else {
+      setExpiryDate(new Date());
+    }
     
     setMessage(item.message || '');
     setStockCount(item.quantity !== undefined ? item.quantity.toString() : '1');
@@ -184,6 +192,7 @@ export default function InventoryScreen() {
       originalPrice: item.oldPrice.replace('$', ''),
       discountPrice: item.price.replace('$', ''),
       pickupDate: item.pickupTimestamp ? new Date(item.pickupTimestamp) : new Date(),
+      expiryDate: item.expiryTimestamp ? new Date(item.expiryTimestamp) : new Date(),
       message: item.message || '',
       stockCount: item.quantity !== undefined ? item.quantity.toString() : '1',
       isHidden: item.status === 'hidden',
@@ -212,6 +221,7 @@ export default function InventoryScreen() {
         discount: `${Math.round((1 - parseFloat(discountPrice) / parseFloat(originalPrice)) * 100)}% OFF`,
         time: `${pickupDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${pickupDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
         pickupTimestamp: pickupDate.getTime(),
+        expiryTimestamp: expiryDate.getTime(),
         message,
         quantity: isNaN(parsedStock) ? 1 : Math.max(0, parsedStock),
       };
@@ -264,6 +274,7 @@ export default function InventoryScreen() {
     setOriginalPrice('');
     setDiscountPrice('');
     setPickupDate(new Date());
+    setExpiryDate(new Date());
     setMessage('');
     setStockCount('1');
     setIsHidden(false);
@@ -286,11 +297,12 @@ export default function InventoryScreen() {
       originalPrice !== originalItem.originalPrice ||
       discountPrice !== originalItem.discountPrice ||
       pickupDate.getTime() !== originalItem.pickupDate?.getTime() ||
+      expiryDate.getTime() !== originalItem.expiryDate?.getTime() ||
       message !== originalItem.message ||
       stockCount !== originalItem.stockCount ||
       isHidden !== originalItem.isHidden
     );
-  }, [title, description, category, originalPrice, discountPrice, pickupDate, message, stockCount, isHidden, editingId, originalItem, isRelistMode]);
+  }, [title, description, category, originalPrice, discountPrice, pickupDate, expiryDate, message, stockCount, isHidden, editingId, originalItem, isRelistMode]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -523,6 +535,20 @@ export default function InventoryScreen() {
                   </View>
                 </View>
 
+                <View className="mt-4">
+                  <Text className="text-gray-700 font-bold mb-2 ml-1">Expiry Date</Text>
+                  <View className="flex-row gap-3">
+                    <Pressable 
+                      onPress={() => setShowExpiryDatePicker(true)}
+                      className="flex-1 bg-white px-4 py-4 rounded-2xl border border-gray-100 items-center justify-center"
+                    >
+                      <Text className="text-gray-900 font-medium">
+                        {expiryDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+
                 {/* --- ANDROID: Uses the native OS dialog overlay automatically --- */}
                 {Platform.OS === 'android' && showDatePicker && (
                   <DateTimePicker
@@ -535,6 +561,22 @@ export default function InventoryScreen() {
                         const newDate = new Date(pickupDate);
                         newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
                         setPickupDate(newDate);
+                      }
+                    }}
+                  />
+                )}
+
+                {Platform.OS === 'android' && showExpiryDatePicker && (
+                  <DateTimePicker
+                    value={expiryDate}
+                    mode="date"
+                    display="default"
+                    onChange={(event, date) => {
+                      setShowExpiryDatePicker(false);
+                      if (date) {
+                        const newDate = new Date(expiryDate);
+                        newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                        setExpiryDate(newDate);
                       }
                     }}
                   />
@@ -557,7 +599,7 @@ export default function InventoryScreen() {
                 )}
 
                 {/* --- IOS: Requires a Modal wrapper for the popup experience --- */}
-                {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
+                {Platform.OS === 'ios' && (showDatePicker || showTimePicker || showExpiryDatePicker) && (
                   <Modal transparent={true} animationType="fade" visible={true}>
                     <View className="flex-1 justify-end bg-black/40">
                       <View className="bg-white rounded-t-3xl pb-8">
@@ -565,12 +607,13 @@ export default function InventoryScreen() {
                         {/* iOS Modal Header with Done Button */}
                         <View className="flex-row justify-between items-center border-b border-gray-100 px-6 py-4">
                           <Text className="text-gray-900 font-bold text-lg">
-                            Select {showDatePicker ? 'Date' : 'Time'}
+                            Select {showDatePicker ? 'Pickup Date' : showExpiryDatePicker ? 'Expiry Date' : 'Time'}
                           </Text>
                           <Pressable 
                             onPress={() => {
                               setShowDatePicker(false);
                               setShowTimePicker(false);
+                              setShowExpiryDatePicker(false);
                             }}
                           >
                             <Text className="text-brandPrimary font-bold text-lg">Done</Text>
@@ -580,8 +623,8 @@ export default function InventoryScreen() {
                         {/* The iOS Spinner */}
                         <View className="w-full items-center justify-center">
                           <DateTimePicker
-                            value={pickupDate}
-                            mode={showDatePicker ? "date" : "time"}
+                            value={showExpiryDatePicker ? expiryDate : pickupDate}
+                            mode={(showDatePicker || showExpiryDatePicker) ? "date" : "time"}
                             display="spinner"
                             textColor="#000000" /* Prevents invisible text if user device is in Dark Mode */
                             style={{ alignSelf: 'center' }}
@@ -589,13 +632,19 @@ export default function InventoryScreen() {
                               // Note: We DO NOT close the modal here on iOS. 
                               // We let the user spin the wheel and tap "Done" when finished.
                               if (date) {
-                                const newDate = new Date(pickupDate);
-                                if (showDatePicker) {
+                                if (showExpiryDatePicker) {
+                                  const newDate = new Date(expiryDate);
                                   newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                                  setExpiryDate(newDate);
                                 } else {
-                                  newDate.setHours(date.getHours(), date.getMinutes(), 0, 0);
+                                  const newDate = new Date(pickupDate);
+                                  if (showDatePicker) {
+                                    newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                                  } else {
+                                    newDate.setHours(date.getHours(), date.getMinutes(), 0, 0);
+                                  }
+                                  setPickupDate(newDate);
                                 }
-                                setPickupDate(newDate);
                               }
                             }}
                           />

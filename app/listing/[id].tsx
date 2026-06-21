@@ -275,6 +275,16 @@ export default function ListingDetailScreen() {
                 )}
                 */}
 
+                {/* Expiry Date */}
+                {item.expiryTimestamp && (
+                  <View className="mb-6 bg-red-50 p-4 rounded-2xl border border-red-100 flex-row items-center">
+                    <Clock size={20} color="#DC2626" />
+                    <Text className="ml-3 text-red-900 font-medium">
+                      Good until: <Text className="font-bold">{new Date(item.expiryTimestamp).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
+                    </Text>
+                  </View>
+                )}
+
                 {/* Pickup Section */}
                 <View className="bg-brandAccent-yellow rounded-[32px] p-6 mb-8 border border-yellow-100">
                   <Text className="font-bold text-yellow-900 text-xl mb-4">Pickup Window</Text>

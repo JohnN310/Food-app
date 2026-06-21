@@ -161,18 +161,28 @@ export default function OrderDetailsScreen() {
                   </View>
                 )}
                 <Text className="font-bold text-gray-900 text-lg flex-1" numberOfLines={1}>{item.title}</Text>
+                <View className="bg-brandPrimary-soft px-2 py-1 rounded-md ml-2">
+                  <Text className="text-brandPrimary text-[10px] font-bold">{item.discount}</Text>
+                </View>
               </View>
               <Text className="text-gray-500 text-xs leading-relaxed" numberOfLines={2}>
                 {item.description || 'Assorted items and baked goods'}
               </Text>
             </View>
-            <View className="flex-row items-center justify-between mt-2">
-              <View className="bg-brandPrimary-soft px-2 py-1 rounded-md">
-                <Text className="text-brandPrimary text-[10px] font-bold">{item.discount}</Text>
-              </View>
-              <View className="items-end">
+            <View className="flex-row items-end justify-between mt-2">
+              {item.expiryTimestamp ? (
+                <View className="flex-row items-center mb-1">
+                  <Clock size={12} color="#DC2626" />
+                  <Text className="text-red-600 text-[10px] font-bold ml-1">
+                    Good until: {new Date(item.expiryTimestamp).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+              ) : (
+                <View />
+              )}
+              <View className="flex-row items-baseline">
+                <Text className="text-gray-400 line-through text-[10px] mr-1">{item.oldPrice}</Text>
                 <Text className="font-bold text-brandPrimary text-lg">{item.price}</Text>
-                <Text className="text-gray-400 line-through text-[10px]">{item.oldPrice}</Text>
               </View>
             </View>
           </View>

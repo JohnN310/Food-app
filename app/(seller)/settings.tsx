@@ -1,3 +1,4 @@
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 import { auth, db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
 import { useRouter } from 'expo-router';
@@ -9,7 +10,6 @@ import {
   CreditCard,
   HelpCircle,
   LogOut,
-  MapPin,
   Phone,
   Save,
   Settings,
@@ -20,9 +20,8 @@ import {
   X
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, Modal, Pressable, ScrollView, Text, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const { height } = Dimensions.get('window');
 
@@ -55,6 +54,7 @@ export default function SellerSettingsScreen() {
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
+  const [merchantType, setMerchantType] = useState('Restaurant');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -96,6 +96,7 @@ export default function SellerSettingsScreen() {
           setStoreName(data.storeName || '');
           setStoreDescription(data.storeDescription || '');
           setStoreAddress(data.storeAddress || '');
+          setMerchantType(data.merchantType || 'Restaurant');
           setLatitude(data.latitude || null);
           setLongitude(data.longitude || null);
           setOriginalData(data);
@@ -117,6 +118,7 @@ export default function SellerSettingsScreen() {
     storeName.trim() !== (originalData.storeName || '') ||
     storeDescription.trim() !== (originalData.storeDescription || '') ||
     storeAddress.trim() !== (originalData.storeAddress || '') ||
+    merchantType !== (originalData.merchantType || 'Restaurant') ||
     latitude !== (originalData.latitude || null) ||
     longitude !== (originalData.longitude || null)
   );
@@ -135,6 +137,7 @@ export default function SellerSettingsScreen() {
         storeName: storeName.trim(),
         storeDescription: storeDescription.trim(),
         storeAddress: storeAddress.trim(),
+        merchantType: merchantType,
       };
       if (latitude !== null) updatePayload.latitude = latitude;
       if (longitude !== null) updatePayload.longitude = longitude;
@@ -161,17 +164,6 @@ export default function SellerSettingsScreen() {
     }
   };
 
-  const handleSwitchToBuyer = async () => {
-    if (!user?.uid) return;
-    try {
-      await updateDoc(doc(db, 'users', user.uid), { role: 'buyer' });
-      setRole('buyer');
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error("Error switching roles:", error);
-      Alert.alert('Error', 'Could not switch to buyer mode. Please check your connection.');
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -224,6 +216,19 @@ export default function SellerSettingsScreen() {
                 <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
                   <TextInput value={storeDescription} onChangeText={setStoreDescription} placeholder="Short description" placeholderTextColor="#6B7280" multiline className="flex-1 text-gray-900 font-medium text-base h-20" textAlignVertical="top" />
                 </View>
+
+                <Text className="text-gray-500 text-sm font-semibold mb-2">Merchant Type</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-4">
+                  {['Restaurant', 'Café', 'Bakery', 'Beverage Shop', 'Food Stall', 'Grocery / Supermarket', 'Hotel / Catering', 'Other'].map((type) => (
+                    <Pressable
+                      key={type}
+                      onPress={() => setMerchantType(type)}
+                      className={`mr-3 px-4 py-2 rounded-xl flex-row items-center border ${merchantType === type ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-100'}`}
+                    >
+                      <Text className={`font-bold text-sm ${merchantType === type ? 'text-white' : 'text-gray-600'}`}>{type}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
 
                 <Text className="text-gray-500 text-sm font-semibold mb-2">Store Address</Text>
                 <AddressAutocomplete
@@ -307,16 +312,6 @@ export default function SellerSettingsScreen() {
           />
         </View>
 
-        {/* Switch to Buyer Mode */}
-        <View className="bg-white rounded-3xl mb-8 border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem
-            icon={<ArrowLeftRight size={20} color="#D97706" />}
-            iconBgColor="bg-[#FFF4E5]"
-            title="Switch to Buyer mode"
-            subtitle="Browse and buy rescued items"
-            onPress={handleSwitchToBuyer}
-          />
-        </View>
 
         {/* Account Actions */}
         <Text className="font-bold text-gray-400 text-xs tracking-wider mb-2 ml-1">ACCOUNT ACTIONS</Text>
@@ -337,10 +332,6 @@ export default function SellerSettingsScreen() {
           />
         </View>
 
-        {/* Footer */}
-        <View className="items-center justify-center mb-8">
-          <Text className="text-gray-500 text-xs">Things Still Good · v1.0 · Made with 💚</Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

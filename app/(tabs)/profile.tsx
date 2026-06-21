@@ -1,13 +1,13 @@
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 import { auth, db } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { signOut } from 'firebase/auth';
-import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
-import { ChevronRight, CreditCard, Gift, HelpCircle, Key, LogOut, MessageCircle, Phone, RefreshCw, Save, Settings, Shield, Star, Store, Trash2, User, Users, X } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, TextInput, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { ChevronRight, CreditCard, HelpCircle, LogOut, MessageCircle, Phone, RefreshCw, Save, Settings, Shield, Star, Trash2, User, X } from 'lucide-react-native';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const { height } = Dimensions.get('window');
 
@@ -53,31 +53,33 @@ export default function ProfileScreen() {
 
   const unreadMessagesCount = useAppStore(state => state.unreadMessagesCount);
 
-  useEffect(() => {
-    if (!user?.uid) return;
-    const fetchUserData = async () => {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUsername(data.username || 'Valued User');
-          setPhone(data.phone || '');
-          setAddress(data.address || '');
-          setLatitude(data.latitude || null);
-          setLongitude(data.longitude || null);
-          setDietaryPrefs(data.dietaryPreferences || []);
-          setOriginalData(data);
-        } else {
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.uid) return;
+      const fetchUserData = async () => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setUsername(data.username || 'Valued User');
+            setPhone(data.phone || '');
+            setAddress(data.address || '');
+            setLatitude(data.latitude || null);
+            setLongitude(data.longitude || null);
+            setDietaryPrefs(data.dietaryPreferences || []);
+            setOriginalData(data);
+          } else {
+            setUsername('Valued User');
+            setOriginalData({});
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
           setUsername('Valued User');
-          setOriginalData({});
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setUsername('Valued User');
-      }
-    };
-    fetchUserData();
-  }, [user?.uid]);
+      };
+      fetchUserData();
+    }, [user?.uid])
+  );
 
   const togglePreference = (pref: string) => {
     setDietaryPrefs(prev => prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref]);
@@ -132,17 +134,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSwitchToSeller = async () => {
-    if (!user?.uid) return;
-    try {
-      await updateDoc(doc(db, 'users', user.uid), { role: 'seller' });
-      setRole('seller');
-      router.replace('/(seller)');
-    } catch (error) {
-      console.error("Error switching roles:", error);
-      Alert.alert('Error', 'Could not switch to seller mode. Please check your connection.');
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAF5]" edges={['top']}>
@@ -185,7 +176,7 @@ export default function ProfileScreen() {
                   <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Home Location</Text>
+                <Text className="text-gray-500 text-sm font-semibold mb-2">Location</Text>
                 <AddressAutocomplete
                   value={address}
                   onChangeAddress={(newAddress, lat, lon) => {
@@ -252,25 +243,25 @@ export default function ProfileScreen() {
           <MenuItem
             icon={<MessageCircle size={18} color="#1B7A49" />}
             title="Messages"
-            subtitle="Chats with sellers & friends"
+            subtitle="Chats with sellers"
             badge={unreadMessagesCount > 0 ? unreadMessagesCount.toString() : undefined}
             onPress={() => router.push('/profile/messages')}
           />
           <View className="h-px bg-gray-50 ml-[68px]" />
-          <MenuItem icon={<Gift size={18} color="#1B7A49" />} title="Promotions & rewards" subtitle="Vouchers, promo codes, referrals" onPress={() => router.push('/profile/promotions')} />
+          {/* <MenuItem icon={<Gift size={18} color="#1B7A49" />} title="Promotions & rewards" subtitle="Vouchers, promo codes, referrals" onPress={() => router.push('/profile/promotions')} />
+          <View className="h-px bg-gray-50 ml-[68px]" /> */}
+          <MenuItem icon={<Star size={18} color="#1B7A49" />} title="My feedback" subtitle="Send feedback to us" onPress={() => router.push('/profile/feedback')} />
         </View>
 
         {/* For Buyers Menu */}
-        <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">FOR BUYERS</Text>
+        {/* <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">FOR BUYERS</Text>
         <View className="bg-white rounded-[24px] mb-6 border border-gray-100 shadow-sm overflow-hidden">
           <MenuItem icon={<Users size={18} color="#1B7A49" />} title="Invite friends" subtitle="Earn $1.99 voucher per friend" onPress={() => router.push('/profile/invite')} />
           <View className="h-px bg-gray-50 ml-[68px]" />
           <MenuItem icon={<Store size={18} color="#1B7A49" />} title="Recommend a store" subtitle="Help us bring more stores nearby" onPress={() => router.push('/profile/recommend')} />
           <View className="h-px bg-gray-50 ml-[68px]" />
           <MenuItem icon={<Key size={18} color="#1B7A49" />} title="Hidden stores" subtitle="Unlock private stores with a code" onPress={() => router.push('/profile/hidden-stores')} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
-          <MenuItem icon={<Star size={18} color="#1B7A49" />} title="My feedback" subtitle="Reviews you've left for stores" onPress={() => router.push('/profile/feedback')} />
-        </View>
+        </View> */}
 
         {/* Help & Policies */}
         <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">HELP & POLICIES</Text>
@@ -282,17 +273,6 @@ export default function ProfileScreen() {
           <MenuItem icon={<Settings size={18} color="#1B7A49" />} title="Settings" subtitle="Language, notifications, app preferences" onPress={() => router.push('/profile/settings')} />
         </View>
 
-        {/* Switch to Seller Mode */}
-        <View className="bg-white rounded-[24px] mb-6 border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem
-            icon={<RefreshCw size={18} color="#D97706" />}
-            iconBgColor="bg-[#FFF4E5]"
-            iconBorderColor="border-[#FFE4C4]"
-            title="Switch to Seller mode"
-            subtitle="Manage your store and listings"
-            onPress={handleSwitchToSeller}
-          />
-        </View>
 
         {/* Account Actions */}
         <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">ACCOUNT ACTIONS</Text>
@@ -308,12 +288,6 @@ export default function ProfileScreen() {
             subtitle="Restorable within 7 days"
             onPress={() => Alert.alert('Action', 'Account marked for deletion')}
           />
-        </View>
-
-        {/* Footer */}
-        <View className="items-center justify-center mb-10 pb-4">
-          <Text className="text-gray-400 text-[11px] font-medium tracking-wide">Things Still Good · v1.0.0</Text>
-          <Text className="text-gray-400 text-[11px] font-medium mt-0.5">Made with 💚 in Portland</Text>
         </View>
 
       </ScrollView>
