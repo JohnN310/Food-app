@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import { db } from '@/lib/firebaseLib';
-import { collection, doc, addDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { moderateScale, scale, verticalScale } from '@/lib/responsive';
 import { useAppStore } from '@/store/app-store';
-import { ArrowLeft, Send, MessageSquare } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { ArrowLeft, MessageSquare, Send } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ChatScreen() {
   const { orderId } = useLocalSearchParams();
   const router = useRouter();
   const user = useAppStore(state => state.user);
-  
+
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ export default function ChatScreen() {
       if (orderSnap.exists()) {
         const orderData = orderSnap.data();
         let fetchedStoreName = orderData.itemData?.store || 'Store';
-        
+
         // Fetch seller details to get the actual store name
         if (orderData.sellerId) {
           const sellerSnap = await getDoc(doc(db, 'users', orderData.sellerId));
@@ -109,13 +110,13 @@ export default function ChatScreen() {
     const isMe = item.senderId === user?.uid;
 
     return (
-      <View className={`mb-3 max-w-[80%] ${isMe ? 'self-end' : 'self-start'}`}>
-        <View className={`px-4 py-3 rounded-2xl ${isMe ? 'bg-brandPrimary rounded-tr-sm' : 'bg-white border border-gray-100 rounded-tl-sm shadow-sm'}`}>
-          <Text className={`text-[15px] ${isMe ? 'text-white' : 'text-gray-800'}`}>
+      <View style={{ marginBottom: verticalScale(12), maxWidth: '80%' }} className={`${isMe ? 'self-end' : 'self-start'}`}>
+        <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), borderRadius: scale(16) }} className={`${isMe ? 'bg-brandPrimary rounded-tr-sm' : 'bg-white border border-gray-100 rounded-tl-sm shadow-sm'}`}>
+          <Text style={{ fontSize: moderateScale(16) }} className={`${isMe ? 'text-white' : 'text-gray-800'}`}>
             {item.text}
           </Text>
         </View>
-        <Text className={`text-[10px] text-gray-400 mt-1 mx-1 ${isMe ? 'text-right' : 'text-left'}`}>
+        <Text style={{ fontSize: moderateScale(11), marginTop: verticalScale(4), marginHorizontal: scale(4) }} className={`text-gray-400 ${isMe ? 'text-right' : 'text-left'}`}>
           {item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Sending...'}
         </Text>
       </View>
@@ -125,28 +126,28 @@ export default function ChatScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAF5]" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 relative z-10 bg-[#FAFAF5]">
-        <Pressable onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm z-10">
-          <ArrowLeft size={20} color="#374151" />
+      <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16) }} className="flex-row items-center justify-between relative z-10 bg-[#FAFAF5]">
+        <Pressable onPress={() => router.back()} style={{ width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-white items-center justify-center shadow-sm z-10">
+          <ArrowLeft size={scale(20)} color="#374151" />
         </Pressable>
         <View className="absolute left-0 right-0 items-center pointer-events-none">
           {user?.uid === chatInfo?.sellerId ? (
-            <Text className="text-xl font-bold text-gray-900" numberOfLines={1}>
+            <Text style={{ fontSize: moderateScale(20) }} className="font-bold text-gray-900" numberOfLines={1}>
               Order #{String(orderId).substring(0, 8).toUpperCase()}
             </Text>
           ) : (
             <>
-              <Text className="text-xl font-bold text-gray-900" numberOfLines={1}>
+              <Text style={{ fontSize: moderateScale(20) }} className="font-bold text-gray-900" numberOfLines={1}>
                 {chatInfo?.storeName || 'Loading...'}
               </Text>
-              <Text className="text-xs text-gray-500 mt-0.5">Order #{String(orderId).substring(0, 8).toUpperCase()}</Text>
+              <Text style={{ fontSize: moderateScale(12), marginTop: verticalScale(2) }} className="text-gray-500">Order #{String(orderId).substring(0, 8).toUpperCase()}</Text>
             </>
           )}
         </View>
-        <View className="w-10" />
+        <View style={{ width: scale(40) }} />
       </View>
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
@@ -160,25 +161,25 @@ export default function ChatScreen() {
             data={messages}
             keyExtractor={item => item.id}
             renderItem={renderMessage}
-            contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+            contentContainerStyle={{ padding: scale(16), paddingBottom: verticalScale(24) }}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             ListEmptyComponent={
-              <View className="items-center justify-center py-10 mt-10">
-                <MessageSquare size={48} color="#D1D5DB" />
-                <Text className="text-gray-400 mt-4 font-medium text-base">No messages yet</Text>
-                <Text className="text-gray-400 text-xs mt-1 text-center px-8">Send a message to start the conversation</Text>
+              <View style={{ paddingVertical: verticalScale(40), marginTop: verticalScale(40) }} className="items-center justify-center">
+                <MessageSquare size={scale(48)} color="#D1D5DB" />
+                <Text style={{ fontSize: moderateScale(16), marginTop: verticalScale(16) }} className="text-gray-400 font-medium">No messages yet</Text>
+                <Text style={{ fontSize: moderateScale(13), marginTop: verticalScale(4), paddingHorizontal: scale(32) }} className="text-gray-400 text-center">Send a message to start the conversation</Text>
               </View>
             }
           />
         )}
 
         {/* Input Area */}
-        <View className="px-4 pt-3 pb-8 bg-white border-t border-gray-100 flex-row items-end">
-          <View className="flex-1 bg-gray-50 border border-gray-200 rounded-3xl min-h-[48px] max-h-[120px] px-4 py-3 mr-3 flex-row items-center">
+        <View style={{ paddingHorizontal: scale(16), paddingTop: verticalScale(12), paddingBottom: verticalScale(22) }} className="bg-white border-t border-gray-100 flex-row items-end">
+          <View style={{ minHeight: verticalScale(48), maxHeight: verticalScale(120), paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginRight: scale(12), borderRadius: scale(24) }} className="flex-1 bg-gray-50 border border-gray-200 flex-row items-center">
             <TextInput
-              style={{ flex: 1, fontSize: 16, color: '#1F2937', padding: 0 }}
+              style={{ flex: 1, fontSize: moderateScale(16), color: '#1F2937', padding: 0 }}
               placeholder="Type a message..."
               placeholderTextColor="#9CA3AF"
               value={inputText}
@@ -187,20 +188,20 @@ export default function ChatScreen() {
               maxLength={500}
             />
           </View>
-          <Pressable 
+          <Pressable
             onPress={sendMessage}
             disabled={!inputText.trim()}
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: scale(48),
+              height: scale(48),
+              borderRadius: scale(24),
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: 2,
+              marginBottom: verticalScale(2),
               backgroundColor: inputText.trim() ? '#1B7A49' : '#E5E7EB',
             }}
           >
-            <Send size={20} color={inputText.trim() ? "white" : "#9CA3AF"} style={{ marginLeft: 2 }} />
+            <Send size={scale(20)} color={inputText.trim() ? "white" : "#9CA3AF"} style={{ marginLeft: scale(2) }} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

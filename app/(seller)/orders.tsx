@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, doc, onSnapshot, query, updateDoc, where, deleteDoc } from 'firebase/firestore';
+import { CATEGORY_ICONS } from '@/lib/constants';
 import { db } from '@/lib/firebaseLib';
+import { moderateScale, scale, verticalScale } from '@/lib/responsive';
 import { useAppStore } from '@/store/app-store';
 import { useRouter } from 'expo-router';
-import { CATEGORY_ICONS } from '@/lib/constants';
-import { CheckCircle, QrCode, MessageSquare } from 'lucide-react-native';
+import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { CheckCircle, MessageSquare, QrCode } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SellerOrdersScreen() {
   const user = useAppStore(state => state.user);
@@ -50,10 +51,10 @@ export default function SellerOrdersScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-6 pt-6">
-        <View className="mb-8">
-          <Text className="text-brandPrimary font-semibold text-xs tracking-widest uppercase mb-1">Store Management</Text>
-          <Text className="text-3xl font-bold text-gray-900">Orders</Text>
+      <View style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(24) }} className="flex-1">
+        <View style={{ marginBottom: verticalScale(32) }}>
+          <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(4), letterSpacing: 1 }} className="text-brandPrimary font-semibold uppercase">Store Management</Text>
+          <Text style={{ fontSize: moderateScale(28) }} className="font-bold text-gray-900">Orders</Text>
         </View>
 
         {loading ? (
@@ -63,8 +64,8 @@ export default function SellerOrdersScreen() {
         ) : orders.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
             {pendingOrders.length > 0 && (
-              <View className="mb-6">
-                <Text className="text-gray-900 font-bold text-lg mb-3">Pending Orders</Text>
+              <View style={{ marginBottom: verticalScale(24) }}>
+                <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(12) }} className="text-gray-900 font-bold">Pending Orders</Text>
                 <View>
                   {pendingOrders.map((order) => {
                     const item = order.itemData || {};
@@ -72,50 +73,53 @@ export default function SellerOrdersScreen() {
                     return (
                       <View
                         key={order.id}
-                        className="bg-white rounded-3xl p-4 mb-4 flex-col border border-brandPrimary/30 shadow-sm"
+                        style={{ padding: scale(16), marginBottom: verticalScale(16), borderRadius: scale(24) }}
+                        className="bg-white flex-col border border-brandPrimary/30 shadow-sm"
                       >
                         <View className="flex-row">
-                          <View className="w-20 h-20 bg-brandPrimary-soft rounded-2xl items-center justify-center overflow-hidden">
-                            <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
+                          <View style={{ width: scale(80), height: scale(80), borderRadius: scale(16) }} className="bg-brandPrimary-soft items-center justify-center overflow-hidden">
+                            <Text style={{ fontSize: moderateScale(28) }}>{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
                           </View>
-                          <View className="flex-1 ml-4 justify-center">
-                            <Text className="text-lg font-bold text-gray-900 mb-1" numberOfLines={1}>{item.title}</Text>
-                            <View className="flex-row items-center gap-2 mb-2">
-                              <Text className="text-brandPrimary font-bold">{item.price}</Text>
-                              <Text className="text-gray-400 line-through text-xs">{item.oldPrice}</Text>
+                          <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+                            <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(4) }} className="font-bold text-gray-900" numberOfLines={1}>{item.title}</Text>
+                            <View style={{ gap: scale(8), marginBottom: verticalScale(8) }} className="flex-row items-center">
+                              <Text style={{ fontSize: moderateScale(13) }} className="text-brandPrimary font-bold">{item.price}</Text>
+                              <Text style={{ fontSize: moderateScale(11) }} className="text-gray-400 line-through">{item.oldPrice}</Text>
                               {(order.quantity && order.quantity > 1) && (
-                                <View className="bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
-                                  <Text className="text-brandPrimary text-[10px] font-bold">Qty: {order.quantity}</Text>
+                                <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), borderRadius: scale(6) }} className="bg-green-50 border border-green-100">
+                                  <Text style={{ fontSize: moderateScale(10) }} className="text-brandPrimary font-bold">Qty: {order.quantity}</Text>
                                 </View>
                               )}
                             </View>
-                            <View className={`self-start px-2 py-0.5 rounded border ${isOrdered ? 'bg-orange-50 border-orange-100' : 'bg-[#E1F0E8] border-brandPrimary/20'}`}>
-                              <Text className={`text-[10px] font-bold ${isOrdered ? 'text-orange-600' : 'text-brandPrimary'}`}>
+                            <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), borderRadius: scale(4) }} className={`self-start border ${isOrdered ? 'bg-orange-50 border-orange-100' : 'bg-[#E1F0E8] border-brandPrimary/20'}`}>
+                              <Text style={{ fontSize: moderateScale(10) }} className={`font-bold ${isOrdered ? 'text-orange-600' : 'text-brandPrimary'}`}>
                                 {isOrdered ? 'Status: Ordered' : 'Status: Ready for pickup'}
                               </Text>
                             </View>
                           </View>
                         </View>
-                        <View className="mt-4 pt-4 border-t border-gray-100 flex-row justify-between items-center">
-                          <Text className="font-bold text-gray-500 text-xs uppercase tracking-widest">
+                        <View style={{ marginTop: verticalScale(16), paddingTop: verticalScale(16) }} className="border-t border-gray-100 flex-row justify-between items-center">
+                          <Text style={{ fontSize: moderateScale(11), letterSpacing: 1 }} className="font-bold text-gray-500 uppercase">
                             Order #{order.id.substring(0, 8).toUpperCase()}
                           </Text>
-                          <View className="flex-row gap-2">
+                          <View style={{ gap: scale(8) }} className="flex-row">
                             <Pressable
                               onPress={() => router.push(`/chat/${order.id}` as any)}
-                              className="bg-gray-100 p-2 rounded-xl items-center justify-center relative"
+                              style={{ padding: scale(8), borderRadius: scale(12) }}
+                              className="bg-gray-100 items-center justify-center relative"
                             >
-                              <MessageSquare size={20} color="#374151" />
+                              <MessageSquare size={scale(20)} color="#374151" />
                               {order.hasUnreadSeller && (
-                                <View className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
+                                <View style={{ width: scale(10), height: scale(10), top: verticalScale(-3), right: scale(-3) }} className="absolute bg-red-500 rounded-full border border-white" />
                               )}
                             </Pressable>
                             <Pressable
                               onPress={() => handleUpdateOrderStatus(order.id, isOrdered ? 'ready' : 'completed')}
-                              className="bg-brandPrimary px-4 py-2 rounded-xl flex-row items-center"
+                              style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(12) }}
+                              className="bg-brandPrimary flex-row items-center"
                             >
-                              {isOrdered ? <QrCode size={16} color="white" className="mr-1.5" /> : <CheckCircle size={16} color="white" className="mr-1.5" />}
-                              <Text className="text-white font-bold text-sm">{isOrdered ? ' Mark Ready' : ' Mark Completed'}</Text>
+                              {isOrdered ? <QrCode size={scale(16)} color="white" style={{ marginRight: scale(6) }} /> : <CheckCircle size={scale(16)} color="white" style={{ marginRight: scale(6) }} />}
+                              <Text style={{ fontSize: moderateScale(13) }} className="text-white font-bold">{isOrdered ? 'Mark Ready' : 'Mark Completed'}</Text>
                             </Pressable>
                           </View>
                         </View>
@@ -127,40 +131,41 @@ export default function SellerOrdersScreen() {
             )}
 
             {completedOrders.length > 0 && (
-              <View className="mb-6">
-                <Text className="text-gray-900 font-bold text-lg mb-3">Completed Orders</Text>
+              <View style={{ marginBottom: verticalScale(24) }}>
+                <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(12) }} className="text-gray-900 font-bold">Completed Orders</Text>
                 <View>
                   {completedOrders.map((order) => {
                     const item = order.itemData || {};
                     return (
                       <View
                         key={order.id}
-                        className="bg-white rounded-3xl p-4 mb-4 flex-col border border-gray-200 shadow-sm opacity-80"
+                        style={{ padding: scale(16), marginBottom: verticalScale(16), borderRadius: scale(24) }}
+                        className="bg-white flex-col border border-gray-200 shadow-sm opacity-80"
                       >
                         <View className="flex-row">
-                          <View className="w-20 h-20 bg-gray-100 rounded-2xl items-center justify-center overflow-hidden">
-                            <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
+                          <View style={{ width: scale(80), height: scale(80), borderRadius: scale(16) }} className="bg-gray-100 items-center justify-center overflow-hidden">
+                            <Text style={{ fontSize: moderateScale(28) }}>{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
                           </View>
-                          <View className="flex-1 ml-4 justify-center">
-                            <Text className="text-lg font-bold text-gray-500 mb-1" numberOfLines={1}>{item.title}</Text>
-                            <View className="flex-row items-center gap-2 mb-2">
-                              <Text className="text-gray-500 font-bold">{item.price}</Text>
-                              <Text className="text-gray-300 line-through text-xs">{item.oldPrice}</Text>
+                          <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+                            <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(4) }} className="font-bold text-gray-500" numberOfLines={1}>{item.title}</Text>
+                            <View style={{ gap: scale(8), marginBottom: verticalScale(8) }} className="flex-row items-center">
+                              <Text style={{ fontSize: moderateScale(13) }} className="text-gray-500 font-bold">{item.price}</Text>
+                              <Text style={{ fontSize: moderateScale(11) }} className="text-gray-300 line-through">{item.oldPrice}</Text>
                               {(order.quantity && order.quantity > 1) && (
-                                <View className="bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
-                                  <Text className="text-gray-500 text-[10px] font-bold">Qty: {order.quantity}</Text>
+                                <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), borderRadius: scale(6) }} className="bg-gray-100 border border-gray-200">
+                                  <Text style={{ fontSize: moderateScale(10) }} className="text-gray-500 font-bold">Qty: {order.quantity}</Text>
                                 </View>
                               )}
                             </View>
-                            <View className="self-start px-2 py-0.5 rounded border bg-[#E1F0E8] border-brandPrimary/20">
-                              <Text className="text-[10px] font-bold text-brandPrimary">
+                            <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), borderRadius: scale(4) }} className="self-start border bg-[#E1F0E8] border-brandPrimary/20">
+                              <Text style={{ fontSize: moderateScale(10) }} className="font-bold text-brandPrimary">
                                 Status: Completed
                               </Text>
                             </View>
                           </View>
                         </View>
-                        <View className="mt-4 pt-4 border-t border-gray-100 flex-row justify-between items-center">
-                          <Text className="font-bold text-gray-400 text-xs uppercase tracking-widest">
+                        <View style={{ marginTop: verticalScale(16), paddingTop: verticalScale(16) }} className="border-t border-gray-100 flex-row justify-between items-center">
+                          <Text style={{ fontSize: moderateScale(11), letterSpacing: 1 }} className="font-bold text-gray-400 uppercase">
                             Order #{order.id.substring(0, 8).toUpperCase()}
                           </Text>
                         </View>
@@ -170,15 +175,15 @@ export default function SellerOrdersScreen() {
                 </View>
               </View>
             )}
-            <View className="h-10" />
+            <View style={{ height: verticalScale(40) }} />
           </ScrollView>
         ) : (
-          <View className="flex-1 items-center justify-center pb-12">
-            <View className="w-24 h-24 bg-brandPrimary-soft rounded-[40px] items-center justify-center mb-6">
-              <CheckCircle size={48} color="#1B7A49" />
+          <View style={{ paddingBottom: verticalScale(48) }} className="flex-1 items-center justify-center">
+            <View style={{ width: scale(96), height: scale(96), borderRadius: scale(40), marginBottom: verticalScale(24) }} className="bg-brandPrimary-soft items-center justify-center">
+              <CheckCircle size={scale(48)} color="#1B7A49" />
             </View>
-            <Text className="text-2xl font-bold text-gray-900 mb-3">No orders yet</Text>
-            <Text className="text-gray-500 text-center mb-10 px-10 leading-relaxed">
+            <Text style={{ fontSize: moderateScale(22), marginBottom: verticalScale(12) }} className="font-bold text-gray-900">No orders yet</Text>
+            <Text style={{ fontSize: moderateScale(15), marginBottom: verticalScale(40), paddingHorizontal: scale(40) }} className="text-gray-500 text-center leading-relaxed">
               When buyers reserve your items, their orders will appear here.
             </Text>
           </View>

@@ -1,11 +1,12 @@
 import { CATEGORY_ICONS } from '@/lib/constants';
 import { db } from '@/lib/firebaseLib';
+import { moderateScale, scale, verticalScale } from '@/lib/responsive';
 import { useAppStore } from '@/store/app-store';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { CheckCircle, ChevronRight, DollarSign, Package, Plus, QrCode, Trash2, X } from 'lucide-react-native';
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View, Switch } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -168,7 +169,7 @@ export default function InventoryScreen() {
     setCategory(item.category);
     setOriginalPrice(item.oldPrice.replace('$', ''));
     setDiscountPrice(item.price.replace('$', ''));
-    
+
     // Restore the date if we saved it previously, otherwise fallback to current date
     if (item.pickupTimestamp) {
       setPickupDate(new Date(item.pickupTimestamp));
@@ -181,7 +182,7 @@ export default function InventoryScreen() {
     } else {
       setExpiryDate(new Date());
     }
-    
+
     setMessage(item.message || '');
     setStockCount(item.quantity !== undefined ? item.quantity.toString() : '1');
     setIsHidden(item.status === 'hidden');
@@ -238,7 +239,7 @@ export default function InventoryScreen() {
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         let storeName = "Your Store";
-        
+
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           if (userData.storeName) storeName = userData.storeName;
@@ -289,7 +290,7 @@ export default function InventoryScreen() {
     if (!editingId) return true;
     if (isRelistMode) return true;
     if (!originalItem) return true;
-    
+
     return (
       title !== originalItem.title ||
       description !== originalItem.description ||
@@ -306,19 +307,20 @@ export default function InventoryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-6 pt-6">
+      <View style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(24) }} className="flex-1">
 
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-8">
+        <View style={{ marginBottom: verticalScale(32) }} className="flex-row items-center justify-between">
           <View>
-            <Text className="text-brandPrimary font-semibold text-xs tracking-widest uppercase mb-1">Store Inventory</Text>
-            <Text className="text-3xl font-bold text-gray-900">Listings ({listings.filter(l => l.status === 'active' || l.status === 'hidden').length})</Text>
+            <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(4), letterSpacing: 1 }} className="text-brandPrimary font-semibold uppercase">Store Inventory</Text>
+            <Text style={{ fontSize: moderateScale(28) }} className="font-bold text-gray-900">Listings ({listings.filter(l => l.status === 'active' || l.status === 'hidden').length})</Text>
           </View>
           <Pressable
             onPress={openModal} // Changed to openModal
-            className="w-12 h-12 bg-brandPrimary rounded-2xl items-center justify-center shadow-lg shadow-brandPrimary/20"
+            style={{ width: scale(48), height: scale(48), borderRadius: scale(16) }}
+            className="bg-brandPrimary items-center justify-center shadow-lg shadow-brandPrimary/20"
           >
-            <Plus size={24} color="white" strokeWidth={2.5} />
+            <Plus size={scale(24)} color="white" strokeWidth={2.5} />
           </Pressable>
         </View>
 
@@ -332,52 +334,54 @@ export default function InventoryScreen() {
 
             {listings.filter(l => l.status === 'active' || l.status === 'hidden').length > 0 && (
               <View>
-                
+
                 {listings.filter(l => l.status === 'active' || l.status === 'hidden').map((item) => (
                   <Pressable
                     key={item.id}
                     onPress={() => handleEditPress(item)}
-                    className="bg-white rounded-3xl p-4 mb-4 flex-row border border-gray-100 shadow-sm active:opacity-70"
+                    style={{ padding: scale(16), marginBottom: verticalScale(16), borderRadius: scale(24) }}
+                    className="bg-white flex-row border border-gray-100 shadow-sm active:opacity-70"
                   >
-                    <View className="w-20 h-20 bg-brandPrimary-soft rounded-2xl items-center justify-center overflow-hidden">
-                      <Text className="text-3xl">{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
+                    <View style={{ width: scale(80), height: scale(80), borderRadius: scale(16) }} className="bg-brandPrimary-soft items-center justify-center overflow-hidden">
+                      <Text style={{ fontSize: moderateScale(28) }}>{CATEGORY_ICONS[item.category] || '🏷️'}</Text>
                     </View>
-                    <View className="flex-1 ml-4 justify-center">
-                      <Text className="text-lg font-bold text-gray-900 mb-1">{item.title}</Text>
-                      <View className="flex-row items-center gap-2">
-                        <View className={`px-2 py-0.5 rounded-md border ${item.status === 'hidden' ? 'bg-gray-100 border-gray-200' : 'bg-brandPrimary-soft border-brandPrimary/20'}`}>
-                          <Text className={`text-[10px] font-bold ${item.status === 'hidden' ? 'text-gray-500' : 'text-brandPrimary'}`}>
+                    <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+                      <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(4) }} className="font-bold text-gray-900">{item.title}</Text>
+                      <View style={{ gap: scale(8) }} className="flex-row items-center">
+                        <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), borderRadius: scale(6) }} className={`border ${item.status === 'hidden' ? 'bg-gray-100 border-gray-200' : 'bg-brandPrimary-soft border-brandPrimary/20'}`}>
+                          <Text style={{ fontSize: moderateScale(10) }} className={`font-bold ${item.status === 'hidden' ? 'text-gray-500' : 'text-brandPrimary'}`}>
                             {item.status === 'hidden' ? 'Hidden' : 'Active'}
                           </Text>
                         </View>
-                        <Text className="text-brandPrimary font-bold">{item.price}</Text>
-                        <Text className="text-gray-400 line-through text-xs">{item.oldPrice}</Text>
+                        <Text style={{ fontSize: moderateScale(13) }} className="text-brandPrimary font-bold">{item.price}</Text>
+                        <Text style={{ fontSize: moderateScale(11) }} className="text-gray-400 line-through">{item.oldPrice}</Text>
                       </View>
-                      <Text className="text-gray-500 text-xs mt-1">Stock: {item.quantity ?? 1}</Text>
+                      <Text style={{ fontSize: moderateScale(11), marginTop: verticalScale(4) }} className="text-gray-500">Stock: {item.quantity ?? 1}</Text>
                     </View>
                     <View className="justify-center">
-                      <ChevronRight size={20} color="#D1D5DB" />
+                      <ChevronRight size={scale(20)} color="#D1D5DB" />
                     </View>
                   </Pressable>
                 ))}
               </View>
             )}
-            <View className="h-10" />
+            <View style={{ height: verticalScale(40) }} />
           </ScrollView>
         ) : (
-          <View className="flex-1 items-center justify-center pb-12">
-            <View className="w-24 h-24 bg-brandPrimary-soft rounded-[40px] items-center justify-center mb-6">
-              <Package size={48} color="#1B7A49" />
+          <View style={{ paddingBottom: verticalScale(48) }} className="flex-1 items-center justify-center">
+            <View style={{ width: scale(96), height: scale(96), borderRadius: scale(40), marginBottom: verticalScale(24) }} className="bg-brandPrimary-soft items-center justify-center">
+              <Package size={scale(48)} color="#1B7A49" />
             </View>
-            <Text className="text-2xl font-bold text-gray-900 mb-3">Your store is empty</Text>
-            <Text className="text-gray-500 text-center mb-10 px-10 leading-relaxed">
+            <Text style={{ fontSize: moderateScale(22), marginBottom: verticalScale(12) }} className="font-bold text-gray-900">Your store is empty</Text>
+            <Text style={{ fontSize: moderateScale(15), marginBottom: verticalScale(40), paddingHorizontal: scale(40) }} className="text-gray-500 text-center leading-relaxed">
               Start your rescue mission! List your surplus food items here to reach eco-conscious buyers nearby.
             </Text>
             <Pressable
               onPress={openModal} // Changed to openModal
-              className="bg-brandPrimary py-4 px-10 rounded-full shadow-md active:opacity-90"
+              style={{ paddingVertical: verticalScale(16), paddingHorizontal: scale(40), borderRadius: scale(9999) }}
+              className="bg-brandPrimary shadow-md active:opacity-90"
             >
-              <Text className="text-white font-bold text-lg">Add First Listing</Text>
+              <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Add First Listing</Text>
             </Pressable>
           </View>
         )}
@@ -401,37 +405,38 @@ export default function InventoryScreen() {
 
           {/* The Animated Form Sheet */}
           <Animated.View
-            style={{ transform: [{ translateY: slideAnim }] }}
-            className="bg-background rounded-t-[32px] px-6 pt-8 pb-10 max-h-[90%] shadow-2xl"
+            style={{ transform: [{ translateY: slideAnim }], paddingHorizontal: scale(24), paddingTop: verticalScale(32), paddingBottom: verticalScale(40), maxHeight: '90%', borderTopLeftRadius: scale(32), borderTopRightRadius: scale(32) }}
+            className="bg-background shadow-2xl"
           >
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-2xl font-bold text-gray-900">{editingId ? "Edit Listing" : "New Listing"}</Text>
-              <View className="flex-row items-center gap-3">
+            <View style={{ marginBottom: verticalScale(24) }} className="flex-row justify-between items-center">
+              <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">{editingId ? "Edit Listing" : "New Listing"}</Text>
+              <View style={{ gap: scale(12) }} className="flex-row items-center">
                 <Pressable
                   onPress={() => setIsHidden(!isHidden)}
-                  className={`px-3 py-1.5 rounded-full flex-row items-center border ${
-                    isHidden 
-                      ? 'bg-gray-50 border-gray-200' 
+                  style={{ paddingHorizontal: scale(12), paddingVertical: verticalScale(6), borderRadius: scale(9999) }}
+                  className={`flex-row items-center border ${isHidden
+                      ? 'bg-gray-50 border-gray-200'
                       : 'bg-brandPrimary-soft border-brandPrimary/20'
-                  }`}
+                    }`}
                 >
-                  <View className={`w-2 h-2 rounded-full mr-1.5 ${isHidden ? 'bg-gray-400' : 'bg-brandPrimary'}`} />
-                  <Text className={`text-xs font-bold ${isHidden ? 'text-gray-500' : 'text-brandPrimary'}`}>
+                  <View style={{ width: scale(8), height: scale(8), borderRadius: scale(4), marginRight: scale(6) }} className={`${isHidden ? 'bg-gray-400' : 'bg-brandPrimary'}`} />
+                  <Text style={{ fontSize: moderateScale(11) }} className={`font-bold ${isHidden ? 'text-gray-500' : 'text-brandPrimary'}`}>
                     {isHidden ? 'Hidden' : 'Active'}
                   </Text>
                 </Pressable>
-                <Pressable onPress={closeModal} className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center">
-                  <X size={20} color="#374151" />
+                <Pressable onPress={closeModal} style={{ width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-gray-100 items-center justify-center">
+                  <X size={scale(20)} color="#374151" />
                 </Pressable>
               </View>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
-              <View className="space-y-5">
+              <View style={{ gap: verticalScale(16) }}>
                 <View>
-                  <Text className="text-gray-700 font-bold mb-2 ml-1">Title</Text>
+                  <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Title</Text>
                   <TextInput
-                    className="bg-white px-4 py-4 rounded-2xl border border-gray-100 text-gray-900"
+                    style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                    className="bg-white border border-gray-100 text-gray-900"
                     placeholder="e.g. Sourdough Loaf (Fresh)"
                     placeholderTextColor="#6B7280"
                     value={title}
@@ -439,10 +444,11 @@ export default function InventoryScreen() {
                   />
                 </View>
 
-                <View className="mt-4">
-                  <Text className="text-gray-700 font-bold mb-2 ml-1">Description</Text>
+                <View>
+                  <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Description</Text>
                   <TextInput
-                    className="bg-white px-4 py-4 rounded-2xl border border-gray-100 text-gray-900 h-24"
+                    style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15), height: verticalScale(96) }}
+                    className="bg-white border border-gray-100 text-gray-900"
                     placeholder="Tell buyers about this item..."
                     placeholderTextColor="#6B7280"
                     value={description}
@@ -451,29 +457,31 @@ export default function InventoryScreen() {
                   />
                 </View>
 
-                <View className="mt-4">
-                  <Text className="text-gray-700 font-bold mb-2 ml-1">Category</Text>
+                <View>
+                  <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Category</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                     {Object.keys(CATEGORY_ICONS).map((cat) => (
                       <Pressable
                         key={cat}
                         onPress={() => setCategory(cat)}
-                        className={`mr-3 px-4 py-2 rounded-xl flex-row items-center border ${category === cat ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-100'}`}
+                        style={{ marginRight: scale(12), paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(12) }}
+                        className={`flex-row items-center border ${category === cat ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-100'}`}
                       >
-                        <Text className="mr-2 text-sm">{CATEGORY_ICONS[cat]}</Text>
-                        <Text className={`font-bold text-sm ${category === cat ? 'text-white' : 'text-gray-600'}`}>{cat}</Text>
+                        <Text style={{ fontSize: moderateScale(13), marginRight: scale(8) }}>{CATEGORY_ICONS[cat]}</Text>
+                        <Text style={{ fontSize: moderateScale(13) }} className={`font-bold ${category === cat ? 'text-white' : 'text-gray-600'}`}>{cat}</Text>
                       </Pressable>
                     ))}
                   </ScrollView>
                 </View>
 
-                <View className="flex-row gap-4 mt-4">
+                <View style={{ gap: scale(16) }} className="flex-row">
                   <View className="flex-1">
-                    <Text className="text-gray-700 font-bold mb-2 ml-1">Original Price</Text>
-                    <View className="bg-white rounded-2xl border border-gray-100 flex-row items-center px-4 py-4">
-                      <DollarSign size={16} color="#9CA3AF" />
+                    <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Original Price</Text>
+                    <View style={{ borderRadius: scale(16), paddingHorizontal: scale(16), paddingVertical: verticalScale(16) }} className="bg-white border border-gray-100 flex-row items-center">
+                      <DollarSign size={scale(16)} color="#9CA3AF" />
                       <TextInput
-                        className="flex-1 ml-2 text-gray-900"
+                        style={{ fontSize: moderateScale(15), marginLeft: scale(8) }}
+                        className="flex-1 text-gray-900"
                         placeholder="0.00"
                         placeholderTextColor="#6B7280"
                         keyboardType="numeric"
@@ -483,11 +491,12 @@ export default function InventoryScreen() {
                     </View>
                   </View>
                   <View className="flex-1">
-                    <Text className="text-gray-700 font-bold mb-2 ml-1">Discount Price</Text>
-                    <View className="bg-white rounded-2xl border border-gray-100 flex-row items-center px-4 py-4">
-                      <DollarSign size={16} color="#1B7A49" />
+                    <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Discount Price</Text>
+                    <View style={{ borderRadius: scale(16), paddingHorizontal: scale(16), paddingVertical: verticalScale(16) }} className="bg-white border border-gray-100 flex-row items-center">
+                      <DollarSign size={scale(16)} color="#1B7A49" />
                       <TextInput
-                        className="flex-1 ml-2 text-gray-900"
+                        style={{ fontSize: moderateScale(15), marginLeft: scale(8) }}
+                        className="flex-1 text-gray-900"
                         placeholder="0.00"
                         placeholderTextColor="#6B7280"
                         keyboardType="numeric"
@@ -498,12 +507,13 @@ export default function InventoryScreen() {
                   </View>
                 </View>
 
-                <View className="mt-4">
-                  <Text className="text-gray-700 font-bold mb-2 ml-1">Stock Quantity</Text>
-                  <View className="bg-white rounded-2xl border border-gray-100 flex-row items-center px-4 py-4">
-                    <Package size={16} color="#9CA3AF" />
+                <View>
+                  <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Stock Quantity</Text>
+                  <View style={{ borderRadius: scale(16), paddingHorizontal: scale(16), paddingVertical: verticalScale(16) }} className="bg-white border border-gray-100 flex-row items-center">
+                    <Package size={scale(16)} color="#9CA3AF" />
                     <TextInput
-                      className="flex-1 ml-2 text-gray-900"
+                      style={{ fontSize: moderateScale(15), marginLeft: scale(8) }}
+                      className="flex-1 text-gray-900"
                       placeholder="1"
                       placeholderTextColor="#6B7280"
                       keyboardType="numeric"
@@ -513,36 +523,39 @@ export default function InventoryScreen() {
                   </View>
                 </View>
 
-                <View className="mt-4">
-                  <Text className="text-gray-700 font-bold mb-2 ml-1">Pickup Time & Date</Text>
-                  <View className="flex-row gap-3">
-                    <Pressable 
+                <View>
+                  <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Pickup Time & Date</Text>
+                  <View style={{ gap: scale(12) }} className="flex-row">
+                    <Pressable
                       onPress={() => setShowDatePicker(true)}
-                      className="flex-1 bg-white px-4 py-4 rounded-2xl border border-gray-100 items-center justify-center"
+                      style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16) }}
+                      className="flex-1 bg-white border border-gray-100 items-center justify-center"
                     >
-                      <Text className="text-gray-900 font-medium">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-900 font-medium">
                         {pickupDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                       </Text>
                     </Pressable>
-                    <Pressable 
+                    <Pressable
                       onPress={() => setShowTimePicker(true)}
-                      className="flex-1 bg-white px-4 py-4 rounded-2xl border border-gray-100 items-center justify-center"
+                      style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16) }}
+                      className="flex-1 bg-white border border-gray-100 items-center justify-center"
                     >
-                      <Text className="text-gray-900 font-medium">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-900 font-medium">
                         {pickupDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                       </Text>
                     </Pressable>
                   </View>
                 </View>
 
-                <View className="mt-4">
-                  <Text className="text-gray-700 font-bold mb-2 ml-1">Expiry Date</Text>
-                  <View className="flex-row gap-3">
-                    <Pressable 
+                <View>
+                  <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Expiry Date</Text>
+                  <View style={{ gap: scale(12) }} className="flex-row">
+                    <Pressable
                       onPress={() => setShowExpiryDatePicker(true)}
-                      className="flex-1 bg-white px-4 py-4 rounded-2xl border border-gray-100 items-center justify-center"
+                      style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16) }}
+                      className="flex-1 bg-white border border-gray-100 items-center justify-center"
                     >
-                      <Text className="text-gray-900 font-medium">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-900 font-medium">
                         {expiryDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                       </Text>
                     </Pressable>
@@ -603,13 +616,13 @@ export default function InventoryScreen() {
                   <Modal transparent={true} animationType="fade" visible={true}>
                     <View className="flex-1 justify-end bg-black/40">
                       <View className="bg-white rounded-t-3xl pb-8">
-                        
+
                         {/* iOS Modal Header with Done Button */}
                         <View className="flex-row justify-between items-center border-b border-gray-100 px-6 py-4">
                           <Text className="text-gray-900 font-bold text-lg">
                             Select {showDatePicker ? 'Pickup Date' : showExpiryDatePicker ? 'Expiry Date' : 'Time'}
                           </Text>
-                          <Pressable 
+                          <Pressable
                             onPress={() => {
                               setShowDatePicker(false);
                               setShowTimePicker(false);
@@ -670,27 +683,28 @@ export default function InventoryScreen() {
 
                 {/* Display pending orders for this item here */}
                 {editingId && orders.some(o => o.itemId === editingId && (o.status === 'ordered' || o.status === 'ready')) && (
-                  <View className="mt-6 p-4 bg-brandPrimary-soft rounded-2xl border border-brandPrimary/20">
-                    <Text className="text-brandPrimary font-bold text-lg mb-3">Manage Orders</Text>
+                  <View style={{ padding: scale(16), borderRadius: scale(16) }} className="bg-brandPrimary-soft border border-brandPrimary/20">
+                    <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(12) }} className="text-brandPrimary font-bold">Manage Orders</Text>
                     {orders.filter(o => o.itemId === editingId && (o.status === 'ordered' || o.status === 'ready')).map(order => {
                       const isOrdered = order.status === 'ordered';
                       return (
-                        <View key={order.id} className="bg-white rounded-xl p-3 mb-2 shadow-sm border border-gray-100 flex-row justify-between items-center">
+                        <View key={order.id} style={{ padding: scale(12), marginBottom: verticalScale(8), borderRadius: scale(12) }} className="bg-white shadow-sm border border-gray-100 flex-row justify-between items-center">
                           <View>
-                            <Text className="font-bold text-gray-900 text-sm">Order #{order.id.substring(0, 8).toUpperCase()}</Text>
-                            <View className="flex-row items-center mt-1">
-                              <Text className="text-brandPrimary text-[10px] font-bold mr-2">Status: {isOrdered ? 'Ordered' : 'Ready for pickup'}</Text>
+                            <Text style={{ fontSize: moderateScale(13) }} className="font-bold text-gray-900">Order #{order.id.substring(0, 8).toUpperCase()}</Text>
+                            <View style={{ marginTop: verticalScale(4) }} className="flex-row items-center">
+                              <Text style={{ fontSize: moderateScale(10), marginRight: scale(8) }} className="text-brandPrimary font-bold">Status: {isOrdered ? 'Ordered' : 'Ready for pickup'}</Text>
                               {(order.quantity && order.quantity > 1) && (
-                                <Text className="text-gray-600 text-[10px] font-bold">Qty: {order.quantity}</Text>
+                                <Text style={{ fontSize: moderateScale(10) }} className="text-gray-600 font-bold">Qty: {order.quantity}</Text>
                               )}
                             </View>
                           </View>
                           <Pressable
                             onPress={() => handleUpdateOrderStatus(order.id, isOrdered ? 'ready' : 'completed')}
-                            className="bg-brandPrimary px-3 py-2 rounded-lg flex-row items-center"
+                            style={{ paddingHorizontal: scale(12), paddingVertical: verticalScale(8), borderRadius: scale(8) }}
+                            className="bg-brandPrimary flex-row items-center"
                           >
-                            {isOrdered ? <QrCode size={12} color="white" className="mr-1" /> : <CheckCircle size={12} color="white" className="mr-1" />}
-                            <Text className="text-white font-bold text-[11px]">{isOrdered ? ' Mark Ready' : ' Mark Completed'}</Text>
+                            {isOrdered ? <QrCode size={scale(12)} color="white" style={{ marginRight: scale(4) }} /> : <CheckCircle size={scale(12)} color="white" style={{ marginRight: scale(4) }} />}
+                            <Text style={{ fontSize: moderateScale(10) }} className="text-white font-bold">{isOrdered ? 'Mark Ready' : 'Mark Completed'}</Text>
                           </Pressable>
                         </View>
                       );
@@ -704,12 +718,13 @@ export default function InventoryScreen() {
                 <Pressable
                   onPress={handleSaveListing}
                   disabled={submitting}
-                  className={`mt-8 mb-4 py-5 rounded-full items-center shadow-lg shadow-brandPrimary/20 ${submitting ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
+                  style={{ marginTop: verticalScale(16), marginBottom: verticalScale(16), paddingVertical: verticalScale(20), borderRadius: scale(9999) }}
+                  className={`items-center shadow-lg shadow-brandPrimary/20 ${submitting ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
                 >
                   {submitting ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-white font-bold text-xl">
+                    <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold">
                       {editingId ? "Save Changes" : "Create Listing"}
                     </Text>
                   )}
@@ -720,11 +735,12 @@ export default function InventoryScreen() {
               {editingId && !isRelistMode && (
                 <Pressable
                   onPress={handleDeleteAction}
-                  className={`mb-8 py-4 rounded-full items-center bg-red-50 border border-red-100 ${!hasChanges ? 'mt-8' : ''}`}
+                  style={{ marginBottom: verticalScale(32), paddingVertical: verticalScale(16), borderRadius: scale(9999), marginTop: !hasChanges ? verticalScale(16) : 0 }}
+                  className={`items-center bg-red-50 border border-red-100`}
                 >
                   <View className="flex-row items-center">
-                    <Trash2 size={18} color="#EF4444" className="mr-2" />
-                    <Text className="text-red-500 font-bold text-lg">Delete Listing</Text>
+                    <Trash2 size={scale(18)} color="#EF4444" style={{ marginRight: scale(8) }} />
+                    <Text style={{ fontSize: moderateScale(16) }} className="text-red-500 font-bold">Delete Listing</Text>
                   </View>
                 </Pressable>
               )}

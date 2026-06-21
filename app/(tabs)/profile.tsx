@@ -8,6 +8,7 @@ import { ChevronRight, CreditCard, HelpCircle, LogOut, MessageCircle, Phone, Ref
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 const { height } = Dimensions.get('window');
 
@@ -137,11 +138,11 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAF5]" edges={['top']}>
-      <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ paddingHorizontal: scale(20), paddingTop: verticalScale(16) }} className="flex-1" showsVerticalScrollIndicator={false}>
 
         {/* Header */}
-        <View className="flex-row justify-between items-center mb-5">
-          <Text className="text-3xl font-extrabold text-gray-900 tracking-tight">Profile</Text>
+        <View style={{ marginBottom: verticalScale(20) }} className="flex-row justify-between items-center">
+          <Text style={{ fontSize: moderateScale(28) }} className="font-extrabold text-gray-900 tracking-tight">Profile</Text>
         </View>
 
         {/* User Card */}
@@ -156,27 +157,27 @@ export default function ProfileScreen() {
               style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%' }}
               className="bg-[#FAFAF5] rounded-t-[32px] pt-4 pb-10 shadow-2xl"
             >
-              <View className="flex-row items-center justify-between px-6 pt-4 pb-4 border-b border-gray-100 mb-4">
-                <Text className="text-2xl font-bold text-gray-900">Edit Profile</Text>
-                <Pressable onPress={closeEditModal} className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center">
-                  <X size={20} color="#374151" />
+              <View style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(16), paddingBottom: verticalScale(16), marginBottom: verticalScale(16) }} className="flex-row items-center justify-between border-b border-gray-100">
+                <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Edit Profile</Text>
+                <Pressable onPress={closeEditModal} style={{ width: scale(40), height: scale(40) }} className="bg-gray-100 rounded-full items-center justify-center">
+                  <X size={scale(20)} color="#374151" />
                 </Pressable>
               </View>
-              <ScrollView className="px-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <ScrollView style={{ paddingHorizontal: scale(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Display Name</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <User size={20} color="#9CA3AF" />
-                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" placeholderTextColor="#6B7280" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Display Name</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginBottom: verticalScale(16), borderRadius: scale(16) }} className="flex-row items-center bg-white border border-gray-100 shadow-sm">
+                  <User size={scale(20)} color="#9CA3AF" />
+                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" placeholderTextColor="#6B7280" style={{ fontSize: moderateScale(16), marginLeft: scale(12) }} className="flex-1 text-gray-900 font-medium" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Phone Number</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <Phone size={20} color="#9CA3AF" />
-                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Phone Number</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginBottom: verticalScale(16), borderRadius: scale(16) }} className="flex-row items-center bg-white border border-gray-100 shadow-sm">
+                  <Phone size={scale(20)} color="#9CA3AF" />
+                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" style={{ fontSize: moderateScale(16), marginLeft: scale(12) }} className="flex-1 text-gray-900 font-medium" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Location</Text>
+                <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Location</Text>
                 <AddressAutocomplete
                   value={address}
                   onChangeAddress={(newAddress, lat, lon) => {
@@ -187,100 +188,101 @@ export default function ProfileScreen() {
                   placeholder="e.g. 123 Main St, Portland"
                 />
 
-                <Text className="font-bold text-gray-400 text-xs tracking-wider mb-3 mt-2">DIETARY PREFERENCES</Text>
-                <View className="flex-row flex-wrap gap-2 mb-6">
+                <Text style={{ fontSize: moderateScale(12), marginBottom: verticalScale(12), marginTop: verticalScale(8) }} className="font-bold text-gray-400 tracking-wider">DIETARY PREFERENCES</Text>
+                <View style={{ gap: scale(8), marginBottom: verticalScale(24) }} className="flex-row flex-wrap">
                   {DIETARY_OPTIONS.map((pref) => {
                     const isActive = dietaryPrefs.includes(pref);
                     return (
                       <Pressable
                         key={pref}
                         onPress={() => togglePreference(pref)}
-                        className={`px-4 py-2 rounded-full border ${isActive ? 'bg-[#E1F0E8] border-[#1B7A49]' : 'bg-white border-gray-200'}`}
+                        style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(999) }}
+                        className={`border ${isActive ? 'bg-[#E1F0E8] border-[#1B7A49]' : 'bg-white border-gray-200'}`}
                       >
-                        <Text className={`font-semibold ${isActive ? 'text-[#1B7A49]' : 'text-gray-500'}`}>{pref}</Text>
+                        <Text style={{ fontSize: moderateScale(14) }} className={`font-semibold ${isActive ? 'text-[#1B7A49]' : 'text-gray-500'}`}>{pref}</Text>
                       </Pressable>
                     );
                   })}
                 </View>
 
                 {hasChanges ? (
-                  <Pressable onPress={handleSaveProfile} disabled={isSaving} className={`flex-row items-center justify-center p-4 rounded-full mb-10 ${isSaving ? 'bg-[#1B7A49] opacity-70' : 'bg-[#1B7A49]'}`}>
-                    {isSaving ? <ActivityIndicator color="white" /> : <><Save size={20} color="white" /><Text className="text-white font-bold text-lg ml-2">Save Changes</Text></>}
+                  <Pressable onPress={handleSaveProfile} disabled={isSaving} style={{ padding: scale(16), marginBottom: verticalScale(40), borderRadius: scale(999) }} className={`flex-row items-center justify-center ${isSaving ? 'bg-[#1B7A49] opacity-70' : 'bg-[#1B7A49]'}`}>
+                    {isSaving ? <ActivityIndicator color="white" /> : <><Save size={scale(20)} color="white" /><Text style={{ fontSize: moderateScale(18), marginLeft: scale(8) }} className="text-white font-bold">Save Changes</Text></>}
                   </Pressable>
                 ) : (
-                  <View className="mb-10" />
+                  <View style={{ marginBottom: verticalScale(40) }} />
                 )}
               </ScrollView>
             </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
-        <View className="bg-white rounded-[24px] p-5 mb-5 border border-gray-100 shadow-sm flex-row items-center active:opacity-90">
-          <View className="w-[60px] h-[60px] bg-[#FFF4E5] rounded-[16px] items-center justify-center border border-[#FFE4C4] overflow-hidden">
+        <View style={{ padding: scale(20), marginBottom: verticalScale(20), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm flex-row items-center active:opacity-90">
+          <View style={{ width: scale(60), height: scale(60), borderRadius: scale(16) }} className="bg-[#FFF4E5] items-center justify-center border border-[#FFE4C4] overflow-hidden">
             <Image
               source={require('../../assets/images/mascot_waving_1776538518453.png')}
-              style={{ width: 44, height: 44 }}
+              style={{ width: scale(44), height: scale(44) }}
               resizeMode="contain"
             />
           </View>
-          <View className="flex-1 ml-4 justify-center">
-            <Text className="font-bold text-gray-900 text-[18px] tracking-tight">{username}</Text>
-            <View className="bg-[#F1F8F4] self-start px-2.5 py-1 rounded-md mt-1 border border-[#E1F0E8]">
-              <Text className="text-[#1B7A49] text-[10px] font-bold tracking-wider">BUYER MODE</Text>
+          <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+            <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 tracking-tight">{username}</Text>
+            <View style={{ paddingHorizontal: scale(10), paddingVertical: verticalScale(4), marginTop: verticalScale(4) }} className="bg-[#F1F8F4] self-start rounded-md border border-[#E1F0E8]">
+              <Text style={{ fontSize: moderateScale(10) }} className="text-[#1B7A49] font-bold tracking-wider">BUYER MODE</Text>
             </View>
           </View>
-          <Pressable onPress={openEditModal} className="bg-white border border-gray-200 px-4 py-2 rounded-xl">
-            <Text className="text-gray-700 font-bold text-[13px]">Edit</Text>
+          <Pressable onPress={openEditModal} style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(12) }} className="bg-white border border-gray-200">
+            <Text style={{ fontSize: moderateScale(13) }} className="text-gray-700 font-bold">Edit</Text>
           </Pressable>
         </View>
 
 
         {/* Account Menu */}
-        <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">ACCOUNT</Text>
-        <View className="bg-white rounded-[24px] mb-6 border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem icon={<CreditCard size={18} color="#1B7A49" />} title="Payment methods" subtitle="Cards, wallets & bank accounts" onPress={() => router.push('/profile/payment-methods')} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(8) }} className="font-bold text-gray-400 tracking-wider">ACCOUNT</Text>
+        <View style={{ marginBottom: verticalScale(24), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+          <MenuItem icon={<CreditCard size={scale(18)} color="#1B7A49" />} title="Payment methods" subtitle="Cards, wallets & bank accounts" onPress={() => router.push('/profile/payment-methods')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
           <MenuItem
-            icon={<MessageCircle size={18} color="#1B7A49" />}
+            icon={<MessageCircle size={scale(18)} color="#1B7A49" />}
             title="Messages"
             subtitle="Chats with sellers"
             badge={unreadMessagesCount > 0 ? unreadMessagesCount.toString() : undefined}
             onPress={() => router.push('/profile/messages')}
           />
-          <View className="h-px bg-gray-50 ml-[68px]" />
-          {/* <MenuItem icon={<Gift size={18} color="#1B7A49" />} title="Promotions & rewards" subtitle="Vouchers, promo codes, referrals" onPress={() => router.push('/profile/promotions')} />
-          <View className="h-px bg-gray-50 ml-[68px]" /> */}
-          <MenuItem icon={<Star size={18} color="#1B7A49" />} title="My feedback" subtitle="Send feedback to us" onPress={() => router.push('/profile/feedback')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
+          {/* <MenuItem icon={<Gift size={scale(18)} color="#1B7A49" />} title="Promotions & rewards" subtitle="Vouchers, promo codes, referrals" onPress={() => router.push('/profile/promotions')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" /> */}
+          <MenuItem icon={<Star size={scale(18)} color="#1B7A49" />} title="My feedback" subtitle="Send feedback to us" onPress={() => router.push('/profile/feedback')} />
         </View>
 
         {/* For Buyers Menu */}
-        {/* <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">FOR BUYERS</Text>
-        <View className="bg-white rounded-[24px] mb-6 border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem icon={<Users size={18} color="#1B7A49" />} title="Invite friends" subtitle="Earn $1.99 voucher per friend" onPress={() => router.push('/profile/invite')} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
-          <MenuItem icon={<Store size={18} color="#1B7A49" />} title="Recommend a store" subtitle="Help us bring more stores nearby" onPress={() => router.push('/profile/recommend')} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
-          <MenuItem icon={<Key size={18} color="#1B7A49" />} title="Hidden stores" subtitle="Unlock private stores with a code" onPress={() => router.push('/profile/hidden-stores')} />
+        {/* <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(8) }} className="font-bold text-gray-400 tracking-wider">FOR BUYERS</Text>
+        <View style={{ marginBottom: verticalScale(24), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+          <MenuItem icon={<Users size={scale(18)} color="#1B7A49" />} title="Invite friends" subtitle="Earn $1.99 voucher per friend" onPress={() => router.push('/profile/invite')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
+          <MenuItem icon={<Store size={scale(18)} color="#1B7A49" />} title="Recommend a store" subtitle="Help us bring more stores nearby" onPress={() => router.push('/profile/recommend')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
+          <MenuItem icon={<Key size={scale(18)} color="#1B7A49" />} title="Hidden stores" subtitle="Unlock private stores with a code" onPress={() => router.push('/profile/hidden-stores')} />
         </View> */}
 
         {/* Help & Policies */}
-        <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">HELP & POLICIES</Text>
-        <View className="bg-white rounded-[24px] mb-6 border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem icon={<HelpCircle size={18} color="#1B7A49" />} title="Customer support" subtitle="AI assistant first, human if needed" onPress={() => router.push('/profile/support')} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
-          <MenuItem icon={<Shield size={18} color="#1B7A49" />} title="Policies, terms & privacy" subtitle="Permissions, data, AI use" onPress={() => router.push('/profile/policies')} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
-          <MenuItem icon={<Settings size={18} color="#1B7A49" />} title="Settings" subtitle="Language, notifications, app preferences" onPress={() => router.push('/profile/settings')} />
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(8) }} className="font-bold text-gray-400 tracking-wider">HELP & POLICIES</Text>
+        <View style={{ marginBottom: verticalScale(24), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+          <MenuItem icon={<HelpCircle size={scale(18)} color="#1B7A49" />} title="Customer support" subtitle="AI assistant first, human if needed" onPress={() => router.push('/profile/support')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
+          <MenuItem icon={<Shield size={scale(18)} color="#1B7A49" />} title="Policies, terms & privacy" subtitle="Permissions, data, AI use" onPress={() => router.push('/profile/policies')} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
+          <MenuItem icon={<Settings size={scale(18)} color="#1B7A49" />} title="Settings" subtitle="Language, notifications, app preferences" onPress={() => router.push('/profile/settings')} />
         </View>
 
 
         {/* Account Actions */}
-        <Text className="font-bold text-gray-400 text-[11px] tracking-wider mb-2 ml-2">ACCOUNT ACTIONS</Text>
-        <View className="bg-white rounded-[24px] mb-8 border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem icon={<LogOut size={18} color="#1B7A49" />} title="Sign out" onPress={handleSignOut} />
-          <View className="h-px bg-gray-50 ml-[68px]" />
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(8) }} className="font-bold text-gray-400 tracking-wider">ACCOUNT ACTIONS</Text>
+        <View style={{ marginBottom: verticalScale(32), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
+          <MenuItem icon={<LogOut size={scale(18)} color="#1B7A49" />} title="Sign out" onPress={handleSignOut} />
+          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
           <MenuItem
-            icon={<Trash2 size={18} color="#E53935" />}
+            icon={<Trash2 size={scale(18)} color="#E53935" />}
             iconBgColor="bg-red-50"
             iconBorderColor="border-red-100"
             title="Delete account"
@@ -297,20 +299,20 @@ export default function ProfileScreen() {
 
 function MenuItem({ icon, title, subtitle, badge, onPress, iconBgColor = "bg-[#F1F8F4]", iconBorderColor = "border-[#E1F0E8]", titleStyle = "text-gray-900" }: any) {
   return (
-    <Pressable onPress={onPress} className="flex-row items-center p-4 active:bg-gray-50">
-      <View className={`w-[44px] h-[44px] rounded-[14px] items-center justify-center ${iconBgColor} border ${iconBorderColor}`}>
+    <Pressable onPress={onPress} style={{ padding: scale(16) }} className="flex-row items-center active:bg-gray-50">
+      <View style={{ width: scale(44), height: scale(44), borderRadius: scale(14) }} className={`items-center justify-center ${iconBgColor} border ${iconBorderColor}`}>
         {icon}
       </View>
-      <View className="flex-1 ml-4 justify-center">
-        <Text className={`font-bold text-[15px] ${titleStyle}`}>{title}</Text>
-        {subtitle && <Text className="text-gray-500 text-[11px] mt-0.5">{subtitle}</Text>}
+      <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+        <Text style={{ fontSize: moderateScale(15) }} className={`font-bold ${titleStyle}`}>{title}</Text>
+        {subtitle && <Text style={{ fontSize: moderateScale(11), marginTop: verticalScale(2) }} className="text-gray-500">{subtitle}</Text>}
       </View>
       {badge && (
-        <View className="bg-red-500 px-2 py-0.5 rounded-full items-center justify-center mr-3 border border-red-600">
-          <Text className="text-white text-[10px] font-bold">{badge}</Text>
+        <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), marginRight: scale(12) }} className="bg-red-500 rounded-full items-center justify-center border border-red-600">
+          <Text style={{ fontSize: moderateScale(10) }} className="text-white font-bold">{badge}</Text>
         </View>
       )}
-      <ChevronRight size={18} color="#D1D5DB" />
+      <ChevronRight size={scale(18)} color="#D1D5DB" />
     </Pressable>
   );
 }

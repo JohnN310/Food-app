@@ -7,6 +7,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
+
 const { width, height } = Dimensions.get('window');
 
 export default function ListingDetailScreen() {
@@ -164,42 +166,45 @@ export default function ListingDetailScreen() {
         {loading ? (
           <View className="flex-1 justify-center items-center bg-background">
             <ActivityIndicator size="large" color="#1B7A49" />
-            <Text className="mt-4 text-gray-500 font-medium">Fetching rescue details...</Text>
+            <Text style={{ fontSize: moderateScale(14), marginTop: verticalScale(16) }} className="text-gray-500 font-medium">Fetching rescue details...</Text>
           </View>
         ) : !item ? (
-          <View className="flex-1 justify-center items-center px-8 bg-background">
-            <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center mb-4">
-              <Info size={40} color="#E53935" />
+          <View style={{ paddingHorizontal: scale(32) }} className="flex-1 justify-center items-center bg-background">
+            <View style={{ width: scale(80), height: scale(80), marginBottom: verticalScale(16) }} className="bg-red-50 rounded-full items-center justify-center">
+              <Info size={scale(40)} color="#E53935" />
             </View>
-            <Text className="text-xl font-bold text-gray-900 mb-2">Item Not Found</Text>
-            <Text className="text-gray-500 text-center mb-8">This item may have been rescued already or removed by the seller.</Text>
+            <Text style={{ fontSize: moderateScale(20), marginBottom: verticalScale(8) }} className="font-bold text-gray-900">Item Not Found</Text>
+            <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(32) }} className="text-gray-500 text-center">This item may have been rescued already or removed by the seller.</Text>
             <Pressable
               onPress={handleBack}
-              className="bg-brandPrimary px-10 py-4 rounded-full shadow-sm"
+              style={{ paddingHorizontal: scale(40), paddingVertical: verticalScale(16) }}
+              className="bg-brandPrimary rounded-full shadow-sm"
             >
-              <Text className="text-white font-bold text-lg">Back to Home</Text>
+              <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold">Back to Home</Text>
             </Pressable>
           </View>
         ) : (
           <>
             {/* Floating Overlay Buttons */}
-            <View className="absolute top-6 left-0 right-0 flex-row justify-between px-6 z-30">
+            <View style={{ top: verticalScale(20), paddingHorizontal: scale(20) }} className="absolute left-0 right-0 flex-row justify-between z-30">
               <Pressable
                 onPress={handleBack}
-                className="w-12 h-12 bg-white/90 rounded-2xl items-center justify-center shadow-lg"
+                style={{ width: scale(44), height: scale(44), borderRadius: scale(14) }}
+                className="bg-white/90 items-center justify-center shadow-lg"
               >
-                <ArrowLeft size={24} color="#1F2937" strokeWidth={2.5} />
+                <ArrowLeft size={scale(22)} color="#1F2937" strokeWidth={2.5} />
               </Pressable>
-              <View className="flex-row gap-3">
-                <Pressable className="w-12 h-12 bg-white/90 rounded-2xl items-center justify-center shadow-lg">
-                  <Share2 size={22} color="#1F2937" />
+              <View style={{ gap: scale(10) }} className="flex-row">
+                <Pressable style={{ width: scale(44), height: scale(44), borderRadius: scale(14) }} className="bg-white/90 items-center justify-center shadow-lg">
+                  <Share2 size={scale(20)} color="#1F2937" />
                 </Pressable>
                 <Pressable
                   onPress={() => toggleSavedItem(item.id)}
-                  className="w-12 h-12 bg-white/90 rounded-2xl items-center justify-center shadow-lg"
+                  style={{ width: scale(44), height: scale(44), borderRadius: scale(14) }}
+                  className="bg-white/90 items-center justify-center shadow-lg"
                 >
                   <Heart
-                    size={22}
+                    size={scale(20)}
                     color={isSaved ? "#E53935" : "#1F2937"}
                     fill={isSaved ? "#E53935" : "transparent"}
                   />
@@ -219,126 +224,114 @@ export default function ListingDetailScreen() {
               </View>
 
               {/* Content Body */}
-              <View className="bg-white -mt-8 pt-6 px-6 pb-32 rounded-t-[32px]">
+              <View style={{ marginTop: verticalScale(-28), paddingTop: verticalScale(20), paddingHorizontal: scale(20), paddingBottom: verticalScale(112), borderRadius: scale(28) }} className="bg-white rounded-t-[28px]">
 
                 {/* Title & Rating */}
-                <View className="flex-row justify-between items-start mb-2 pt-2">
-                  <Text className="font-bold text-gray-900 text-3xl flex-1 mr-4">{item.title}</Text>
+                <View style={{ marginBottom: verticalScale(6), paddingTop: verticalScale(6) }} className="flex-row justify-between items-start">
+                  <Text style={{ fontSize: moderateScale(28), marginRight: scale(14) }} className="font-bold text-gray-900 flex-1">{item.title}</Text>
                   {item.sellerData?.averageRating && (
-                    <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 mt-1">
-                      <Text className="text-gray-900 font-bold text-sm">⭐ {item.sellerData.averageRating}</Text>
+                    <View style={{ paddingHorizontal: scale(12), paddingVertical: verticalScale(5), marginTop: verticalScale(3), borderRadius: scale(7) }} className="flex-row items-center bg-gray-50 border border-gray-100">
+                      <Text style={{ fontSize: moderateScale(13) }} className="text-gray-900 font-bold">⭐ {item.sellerData.averageRating}</Text>
                     </View>
                   )}
                 </View>
-                <View className="flex-row items-center justify-between mb-6">
+                <View style={{ marginBottom: verticalScale(20) }} className="flex-row items-center justify-between">
                   <View className="flex-row items-center">
-                    <Store size={16} color="#4B5563" />
-                    <Text className="text-gray-600 font-medium ml-2 text-base">{item.sellerData?.storeName || item.store}</Text>
+                    <Store size={scale(15)} color="#4B5563" />
+                    <Text style={{ fontSize: moderateScale(15), marginLeft: scale(7) }} className="text-gray-600 font-medium">{item.sellerData?.storeName || item.store}</Text>
                   </View>
-                  <Text className={`font-bold text-sm ${(item.quantity ?? 1) <= 0 ? 'text-red-500' : ((item.quantity ?? 1) <= 10 ? 'text-orange-600' : 'text-brandPrimary')}`}>
+                  <Text style={{ fontSize: moderateScale(13) }} className={`font-bold ${(item.quantity ?? 1) <= 0 ? 'text-red-500' : ((item.quantity ?? 1) <= 10 ? 'text-orange-600' : 'text-brandPrimary')}`}>
                     {(item.quantity ?? 1) <= 0 ? 'Out of stock' : ((item.quantity ?? 1) <= 10 ? `Only ${item.quantity ?? 1} left!` : 'In stock')}
                   </Text>
                 </View>
 
                 {/* Pricing Block */}
-                <View className="bg-gray-50 rounded-[32px] p-6 flex-row items-center justify-between mb-8 border border-gray-100">
+                <View style={{ padding: scale(20), marginBottom: verticalScale(26), borderRadius: scale(28) }} className="bg-gray-50 flex-row items-center justify-between border border-gray-100">
                   <View>
-                    <Text className="text-gray-500 font-medium text-xs uppercase tracking-widest mb-1">Rescue Price</Text>
-                    <View className="flex-row items-end gap-2">
-                      <Text className="font-bold text-brandPrimary text-4xl leading-none">{item.price}</Text>
-                      <Text className="text-gray-400 line-through text-lg mb-1">{item.oldPrice}</Text>
+                    <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(3) }} className="text-gray-500 font-medium uppercase tracking-widest">Rescue Price</Text>
+                    <View style={{ gap: scale(7) }} className="flex-row items-end">
+                      <Text style={{ fontSize: moderateScale(28) }} className="font-bold text-brandPrimary leading-none">{item.price}</Text>
+                      <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(3) }} className="text-gray-400 line-through">{item.oldPrice}</Text>
                     </View>
                   </View>
-                  <View className="bg-brandPrimary px-4 py-2 rounded-2xl shadow-sm shadow-brandPrimary/20">
-                    <Text className="text-white font-bold text-sm">{item.discount}</Text>
+                  <View style={{ paddingHorizontal: scale(14), paddingVertical: verticalScale(7), borderRadius: scale(14) }} className="bg-brandPrimary shadow-sm shadow-brandPrimary/20">
+                    <Text style={{ fontSize: moderateScale(13) }} className="text-white font-bold">{item.discount}</Text>
                   </View>
                 </View>
 
                 {/* Details Section */}
-                <View className="mb-8">
-                  <Text className="font-bold text-gray-900 text-xl mb-3">About this rescue</Text>
-                  <Text className="text-gray-600 text-[15px] leading-relaxed">
+                <View style={{ marginBottom: verticalScale(26) }}>
+                  <Text style={{ fontSize: moderateScale(18), marginBottom: verticalScale(10) }} className="font-bold text-gray-900">About this rescue</Text>
+                  <Text style={{ fontSize: moderateScale(14) }} className="text-gray-600 leading-relaxed">
                     {item.description || 'A great surplus deal! Save money and help the environment by rescuing this perfectly good item before it goes to waste.'}
                   </Text>
                 </View>
 
-                {/* Seller Message 
-                {item.message && (
-                  <View className="bg-gray-50 rounded-[24px] p-5 mb-8 border border-gray-100">
-                    <Text className="font-bold text-gray-900 text-[15px] mb-2 flex-row items-center">
-                      Note from Seller
-                    </Text>
-                    <Text className="text-gray-600 text-[14px] leading-relaxed italic">
-                      "{item.message}"
-                    </Text>
-                  </View>
-                )}
-                */}
-
                 {/* Expiry Date */}
                 {item.expiryTimestamp && (
-                  <View className="mb-6 bg-red-50 p-4 rounded-2xl border border-red-100 flex-row items-center">
-                    <Clock size={20} color="#DC2626" />
-                    <Text className="ml-3 text-red-900 font-medium">
+                  <View style={{ marginBottom: verticalScale(20), padding: scale(14), borderRadius: scale(14) }} className="bg-red-50 border border-red-100 flex-row items-center">
+                    <Clock size={scale(18)} color="#DC2626" />
+                    <Text style={{ fontSize: moderateScale(13), marginLeft: scale(10) }} className="text-red-900 font-medium">
                       Good until: <Text className="font-bold">{new Date(item.expiryTimestamp).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
                     </Text>
                   </View>
                 )}
 
                 {/* Pickup Section */}
-                <View className="bg-brandAccent-yellow rounded-[32px] p-6 mb-8 border border-yellow-100">
-                  <Text className="font-bold text-yellow-900 text-xl mb-4">Pickup Window</Text>
-                  <View className="flex-row items-center mb-5">
-                    <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center mr-4">
-                      <MapPin size={20} color="#78350F" />
+                <View style={{ padding: scale(20), marginBottom: verticalScale(20), borderRadius: scale(28) }} className="bg-brandAccent-yellow border border-yellow-100">
+                  <Text style={{ fontSize: moderateScale(18), marginBottom: verticalScale(14) }} className="font-bold text-yellow-900">Pickup Window</Text>
+                  <View style={{ marginBottom: verticalScale(16) }} className="flex-row items-center">
+                    <View style={{ width: scale(36), height: scale(36), borderRadius: scale(10), marginRight: scale(14) }} className="bg-white/80 items-center justify-center">
+                      <MapPin size={scale(18)} color="#78350F" />
                     </View>
                     <View className="flex-1">
-                      <Text className="font-bold text-yellow-950">Store Location</Text>
-                      <Text className="text-yellow-800 text-sm">{item.sellerData?.storeAddress || 'Address not provided'}</Text>
+                      <Text style={{ fontSize: moderateScale(13) }} className="font-bold text-yellow-950">Store Location</Text>
+                      <Text style={{ fontSize: moderateScale(13) }} className="text-yellow-800">{item.sellerData?.storeAddress || 'Address not provided'}</Text>
                     </View>
                   </View>
                   <View className="flex-row items-center">
-                    <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center mr-4">
-                      <Clock size={20} color="#78350F" />
+                    <View style={{ width: scale(36), height: scale(36), borderRadius: scale(10), marginRight: scale(14) }} className="bg-white/80 items-center justify-center">
+                      <Clock size={scale(18)} color="#78350F" />
                     </View>
                     <View className="flex-1">
-                      <Text className="font-bold text-yellow-950">Time Frame</Text>
-                      <Text className="text-yellow-800 text-sm">{item.time}</Text>
+                      <Text style={{ fontSize: moderateScale(13) }} className="font-bold text-yellow-950">Time Frame</Text>
+                      <Text style={{ fontSize: moderateScale(13) }} className="text-yellow-800">{item.time}</Text>
                     </View>
                   </View>
                 </View>
 
                 {/* Sustainability Badge */}
-                <View className="flex-row items-center bg-green-50 p-5 rounded-[24px] border border-green-100 mb-4">
-                  <ShieldCheck size={24} color="#1B7A49" />
-                  <Text className="flex-1 ml-4 text-brandPrimary font-medium text-sm leading-snug">
+                <View style={{ padding: scale(16), borderRadius: scale(20), marginBottom: verticalScale(14) }} className="flex-row items-center bg-green-50 border border-green-100">
+                  <ShieldCheck size={scale(22)} color="#1B7A49" />
+                  <Text style={{ fontSize: moderateScale(13), marginLeft: scale(14) }} className="flex-1 text-brandPrimary font-medium leading-snug">
                     By rescuing this item, you're preventing roughly <Text className="font-bold">1.2kg of CO2</Text> emissions!
                   </Text>
                 </View>
 
                 {/* Bottom Spacer to prevent overlap with sticky footer */}
-                <View className="h-20" />
+                <View style={{ height: verticalScale(70) }} />
               </View>
             </ScrollView>
 
             {/* Fixed Sticky Footer */}
             <SafeAreaView edges={['bottom']} className="absolute bottom-0 w-full bg-white border-t border-gray-100 shadow-2xl">
-              <View className="px-6 pt-4 pb-10">
-                <View className="flex-row justify-between items-center mb-4">
+              <View style={{ paddingHorizontal: scale(20), paddingTop: verticalScale(14), paddingBottom: verticalScale(32) }}>
+                <View style={{ marginBottom: verticalScale(14) }} className="flex-row justify-between items-center">
                   <View>
-                    <Text className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-0.5">Total Price</Text>
-                    <Text className="text-brandPrimary font-bold text-2xl">
+                    <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(2) }} className="text-gray-500 font-bold uppercase tracking-widest">Total Price</Text>
+                    <Text style={{ fontSize: moderateScale(22) }} className="text-brandPrimary font-bold">
                       ${(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity).toFixed(2)}
                     </Text>
                   </View>
                   <View className="flex-row items-center bg-gray-50 rounded-full border border-gray-100">
                     <Pressable 
                       onPress={() => setPurchaseQuantity(Math.max(1, purchaseQuantity - 1))}
-                      className="w-10 h-10 items-center justify-center rounded-full"
+                      style={{ width: scale(36), height: scale(36) }}
+                      className="items-center justify-center rounded-full"
                     >
-                      <Text className="text-gray-600 font-bold text-xl">-</Text>
+                      <Text style={{ fontSize: moderateScale(18) }} className="text-gray-600 font-bold">-</Text>
                     </Pressable>
-                    <Text className="px-4 font-bold text-gray-900 text-lg">{purchaseQuantity}</Text>
+                    <Text style={{ fontSize: moderateScale(17), paddingHorizontal: scale(14) }} className="font-bold text-gray-900">{purchaseQuantity}</Text>
                     <Pressable 
                       onPress={() => {
                         const maxQty = item.quantity ?? 1;
@@ -348,9 +341,10 @@ export default function ListingDetailScreen() {
                           Alert.alert("Stock Limit Reached", `You can only reserve up to ${maxQty} of this item.`);
                         }
                       }}
-                      className="w-10 h-10 items-center justify-center rounded-full bg-brandPrimary"
+                      style={{ width: scale(36), height: scale(36) }}
+                      className="items-center justify-center rounded-full bg-brandPrimary"
                     >
-                      <Text className="text-white font-bold text-xl">+</Text>
+                      <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold">+</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -360,13 +354,14 @@ export default function ListingDetailScreen() {
                     openModal();
                   }}
                   disabled={(item.quantity ?? 1) <= 0}
-                  className={`w-full py-5 rounded-full items-center shadow-lg ${
+                  style={{ paddingVertical: verticalScale(18) }}
+                  className={`w-full rounded-full items-center shadow-lg ${
                     (item.quantity ?? 1) <= 0 
                       ? 'bg-gray-300 shadow-none' 
                       : 'active:opacity-90 bg-brandPrimary shadow-brandPrimary/30'
                   }`}
                 >
-                  <Text className="text-white font-bold text-xl tracking-tight">
+                  <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold tracking-tight">
                     {(item.quantity ?? 1) <= 0 ? 'Out of Stock' : 'Reserve Now'}
                   </Text>
                 </Pressable>
@@ -390,41 +385,41 @@ export default function ListingDetailScreen() {
 
                 {/* The Animated Checkout Sheet */}
                 <Animated.View
-                  style={{ transform: [{ translateY: slideAnim }] }}
-                  className="bg-background rounded-t-[32px] px-6 pt-8 pb-10 shadow-2xl"
+                  style={{ transform: [{ translateY: slideAnim }], paddingHorizontal: scale(20), paddingTop: verticalScale(28), paddingBottom: verticalScale(36) }}
+                  className="bg-background rounded-t-[28px] shadow-2xl"
                 >
-                  <View className="flex-row justify-between items-center mb-6">
-                    <Text className="text-2xl font-bold text-gray-900">Confirm Reservation</Text>
-                    <Pressable onPress={closeModal} className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center">
-                      <X size={20} color="#374151" />
+                  <View style={{ marginBottom: verticalScale(22) }} className="flex-row justify-between items-center">
+                    <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Confirm Reservation</Text>
+                    <Pressable onPress={closeModal} style={{ width: scale(36), height: scale(36) }} className="bg-gray-100 rounded-full items-center justify-center">
+                      <X size={scale(18)} color="#374151" />
                     </Pressable>
                   </View>
 
                   {/* Order Summary Card */}
-                  <View className="bg-white p-5 rounded-3xl border border-gray-100 mb-8 shadow-sm">
-                    <View className="flex-row items-center mb-4">
-                      <View className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden mr-4">
-                        <Image source={{ uri: item.image }} style={{ width: 48, height: 48 }} />
+                  <View style={{ padding: scale(18), marginBottom: verticalScale(28), borderRadius: scale(22) }} className="bg-white border border-gray-100 shadow-sm">
+                    <View style={{ marginBottom: verticalScale(14) }} className="flex-row items-center">
+                      <View style={{ width: scale(44), height: scale(44), borderRadius: scale(10), marginRight: scale(14) }} className="bg-gray-100 overflow-hidden">
+                        <Image source={{ uri: item.image }} style={{ width: scale(44), height: scale(44) }} />
                       </View>
                       <View className="flex-1">
-                        <Text className="font-bold text-gray-900 text-lg mb-0.5">{item.title}</Text>
-                        <Text className="text-gray-500 text-sm">{item.sellerData?.storeName || item.store}</Text>
+                        <Text style={{ fontSize: moderateScale(17), marginBottom: verticalScale(2) }} className="font-bold text-gray-900">{item.title}</Text>
+                        <Text style={{ fontSize: moderateScale(13) }} className="text-gray-500">{item.sellerData?.storeName || item.store}</Text>
                       </View>
                     </View>
 
-                    <View className="bg-brandAccent-yellow p-3 rounded-2xl flex-row items-center mb-4">
-                      <Clock size={16} color="#78350F" />
-                      <Text className="ml-2 text-yellow-900 font-medium text-sm">Pickup: {item.time}</Text>
+                    <View style={{ padding: scale(12), marginBottom: verticalScale(14), borderRadius: scale(14) }} className="bg-brandAccent-yellow flex-row items-center">
+                      <Clock size={scale(15)} color="#78350F" />
+                      <Text style={{ fontSize: moderateScale(13), marginLeft: scale(7) }} className="text-yellow-900 font-medium">Pickup: {item.time}</Text>
                     </View>
 
-                    <View className="flex-row justify-between items-center border-t border-gray-50 pt-4">
-                      <Text className="text-gray-600 font-medium">Quantity</Text>
-                      <Text className="font-bold text-gray-900 text-lg">x{purchaseQuantity}</Text>
+                    <View style={{ paddingTop: verticalScale(14) }} className="flex-row justify-between items-center border-t border-gray-50">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-600 font-medium">Quantity</Text>
+                      <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-gray-900">x{purchaseQuantity}</Text>
                     </View>
 
-                    <View className="flex-row justify-between items-center pt-2">
-                      <Text className="text-gray-600 font-medium">Total Price</Text>
-                      <Text className="text-brandPrimary font-bold text-2xl">
+                    <View style={{ paddingTop: verticalScale(8) }} className="flex-row justify-between items-center">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-600 font-medium">Total Price</Text>
+                      <Text style={{ fontSize: moderateScale(22) }} className="text-brandPrimary font-bold">
                         ${(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity).toFixed(2)}
                       </Text>
                     </View>
@@ -433,9 +428,10 @@ export default function ListingDetailScreen() {
                   {/* Placeholder for the actual Firebase Transaction */}
                   <Pressable
                     onPress={handleBuy}
-                    className="bg-brandPrimary py-5 rounded-full items-center shadow-lg shadow-brandPrimary/30 active:opacity-90"
+                    style={{ paddingVertical: verticalScale(18), borderRadius: scale(999) }}
+                    className="bg-brandPrimary items-center shadow-lg shadow-brandPrimary/30 active:opacity-90"
                   >
-                    <Text className="text-white font-bold text-xl tracking-tight">Confirm</Text>
+                    <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold tracking-tight">Confirm</Text>
                   </Pressable>
                 </Animated.View>
               </View>

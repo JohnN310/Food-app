@@ -11,6 +11,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
 import { FontAwesome } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -112,66 +113,68 @@ export default function SignupScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView className="flex-1 px-6 pt-4 pb-12" showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(16), paddingBottom: verticalScale(48) }} className="flex-1" showsVerticalScrollIndicator={false}>
 
-          <Pressable onPress={() => router.back()} className="mb-6 w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm">
-            <ArrowLeft size={20} color="#374151" />
+          <Pressable onPress={() => router.back()} style={{ marginBottom: verticalScale(24), width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-white items-center justify-center shadow-sm">
+            <ArrowLeft size={scale(20)} color="#374151" />
           </Pressable>
 
-          <View className="mb-8">
-            <Text className="text-3xl font-bold text-gray-900 mb-2">Create Account</Text>
-            <Text className="text-gray-500">Join the movement and start rescuing!</Text>
+          <View style={{ marginBottom: verticalScale(32) }}>
+            <Text style={{ fontSize: moderateScale(28), marginBottom: verticalScale(8) }} className="font-bold text-gray-900">Create Account</Text>
+            <Text style={{ fontSize: moderateScale(14) }} className="text-gray-500">Join the movement and start rescuing!</Text>
           </View>
 
           {/* Role Toggle */}
-          <View className="mb-8">
-            <Text className="text-gray-700 font-bold mb-3 ml-1">I want to...</Text>
-            <View className="flex-row bg-white rounded-2xl border border-gray-200 p-1">
+          <View style={{ marginBottom: verticalScale(32) }}>
+            <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(12), marginLeft: scale(4) }} className="text-gray-700 font-bold">I want to...</Text>
+            <View style={{ padding: scale(4), borderRadius: scale(16) }} className="flex-row bg-white border border-gray-200">
               <Pressable
                 onPress={() => setSelectedRole('buyer')}
-                className={`flex-1 flex-row items-center justify-center py-3 rounded-xl gap-2 ${selectedRole === 'buyer' ? 'bg-brandPrimary' : ''
-                  }`}
+                style={{ paddingVertical: verticalScale(12), borderRadius: scale(12), gap: scale(8) }}
+                className={`flex-1 flex-row items-center justify-center ${selectedRole === 'buyer' ? 'bg-brandPrimary' : ''}`}
               >
-                <ShoppingBag size={18} color={selectedRole === 'buyer' ? 'white' : '#9CA3AF'} />
-                <Text className={`font-bold text-sm ${selectedRole === 'buyer' ? 'text-white' : 'text-gray-400'
-                  }`}>Buy Food</Text>
+                <ShoppingBag size={scale(18)} color={selectedRole === 'buyer' ? 'white' : '#9CA3AF'} />
+                <Text style={{ fontSize: moderateScale(13) }} className={`font-bold ${selectedRole === 'buyer' ? 'text-white' : 'text-gray-400'}`}>Buy Food</Text>
               </Pressable>
               <Pressable
                 onPress={() => setSelectedRole('seller')}
-                className={`flex-1 flex-row items-center justify-center py-3 rounded-xl gap-2 ${selectedRole === 'seller' ? 'bg-brandPrimary' : ''
-                  }`}
+                style={{ paddingVertical: verticalScale(12), borderRadius: scale(12), gap: scale(8) }}
+                className={`flex-1 flex-row items-center justify-center ${selectedRole === 'seller' ? 'bg-brandPrimary' : ''}`}
               >
-                <Store size={18} color={selectedRole === 'seller' ? 'white' : '#9CA3AF'} />
-                <Text className={`font-bold text-sm ${selectedRole === 'seller' ? 'text-white' : 'text-gray-400'
-                  }`}>Sell Food</Text>
+                <Store size={scale(18)} color={selectedRole === 'seller' ? 'white' : '#9CA3AF'} />
+                <Text style={{ fontSize: moderateScale(13) }} className={`font-bold ${selectedRole === 'seller' ? 'text-white' : 'text-gray-400'}`}>Sell Food</Text>
               </Pressable>
             </View>
           </View>
 
           {errorMsg ? (
-            <View className="bg-red-50 p-3 rounded-xl mb-4 border border-red-100">
-              <Text className="text-red-600 text-sm font-medium">{errorMsg}</Text>
+            <View style={{ padding: scale(12), borderRadius: scale(12), marginBottom: verticalScale(16) }} className="bg-red-50 border border-red-100">
+              <Text style={{ fontSize: moderateScale(13) }} className="text-red-600 font-medium">{errorMsg}</Text>
             </View>
           ) : null}
 
-          <View className="space-y-4">
+          <View>
             {/* NEW USERNAME INPUT */}
-            <View >
-              <Text className="text-gray-700 font-bold mb-2 ml-1">Username</Text>
+            <View>
+              <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Username</Text>
               <TextInput
-                className="bg-white px-4 py-4 rounded-2xl border border-gray-200 text-gray-900"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                className="bg-white border border-gray-200 text-gray-900"
                 placeholder="e.g. EcoWarrior99"
+                placeholderTextColor="#9CA3AF"
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
               />
             </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-700 font-bold mb-2 ml-1">Email</Text>
+            <View style={{ marginTop: verticalScale(16) }}>
+              <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Email</Text>
               <TextInput
-                className="bg-white px-4 py-4 rounded-2xl border border-gray-200 text-gray-900"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                className="bg-white border border-gray-200 text-gray-900"
                 placeholder="hello@example.com"
+                placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -179,22 +182,26 @@ export default function SignupScreen() {
               />
             </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-700 font-bold mb-2 ml-1">Password</Text>
+            <View style={{ marginTop: verticalScale(16) }}>
+              <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Password</Text>
               <TextInput
-                className="bg-white px-4 py-4 rounded-2xl border border-gray-200 text-gray-900"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                className="bg-white border border-gray-200 text-gray-900"
                 placeholder="Create a strong password"
+                placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
               />
             </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-700 font-bold mb-2 ml-1">Confirm Password</Text>
+            <View style={{ marginTop: verticalScale(16) }}>
+              <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Confirm Password</Text>
               <TextInput
-                className="bg-white px-4 py-4 rounded-2xl border border-gray-200 text-gray-900"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                className="bg-white border border-gray-200 text-gray-900"
                 placeholder="Repeat password"
+                placeholderTextColor="#9CA3AF"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -205,24 +212,26 @@ export default function SignupScreen() {
           <Pressable
             onPress={handleSignup}
             disabled={loading}
-            className={`mt-10 py-4 rounded-full items-center shadow-sm ${loading ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
+            style={{ marginTop: verticalScale(40), paddingVertical: verticalScale(16), borderRadius: scale(9999) }}
+            className={`items-center shadow-sm ${loading ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
           >
-            {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">Sign Up</Text>}
+            {loading ? <ActivityIndicator color="white" /> : <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Sign Up</Text>}
           </Pressable>
 
-          <View className="flex-row items-center my-6">
+          <View style={{ marginVertical: verticalScale(24) }} className="flex-row items-center">
             <View className="flex-1 h-px bg-gray-200" />
-            <Text className="text-gray-400 font-medium mx-4">OR</Text>
+            <Text style={{ fontSize: moderateScale(14), marginHorizontal: scale(16) }} className="text-gray-400 font-medium">OR</Text>
             <View className="flex-1 h-px bg-gray-200" />
           </View>
 
           <Pressable
             onPress={() => promptAsync()}
             disabled={!request || loading}
-            className="py-4 rounded-full flex-row items-center justify-center bg-white border border-gray-200 shadow-sm active:bg-gray-50 mb-8"
+            style={{ paddingVertical: verticalScale(16), borderRadius: scale(9999), marginBottom: verticalScale(32) }}
+            className="flex-row items-center justify-center bg-white border border-gray-200 shadow-sm active:bg-gray-50"
           >
-            <FontAwesome name="google" size={20} color="#DB4437" style={{ marginRight: 12 }} />
-            <Text className="text-gray-700 font-bold text-lg">Continue with Google</Text>
+            <FontAwesome name="google" size={scale(20)} color="#DB4437" style={{ marginRight: scale(12) }} />
+            <Text style={{ fontSize: moderateScale(16) }} className="text-gray-700 font-bold">Continue with Google</Text>
           </Pressable>
 
         </ScrollView>

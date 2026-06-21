@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { auth } from '@/lib/firebaseLib';
+import { moderateScale, scale, verticalScale } from '@/lib/responsive';
 import { useRouter } from 'expo-router';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/lib/firebaseLib';
-import { ArrowLeft, Mail, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle, Mail } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -23,16 +24,11 @@ export default function ForgotPasswordScreen() {
     setErrorMsg('');
 
     try {
-      // console.log(`[DEBUG] Attempting to send reset email to: ${email}`);
       await sendPasswordResetEmail(auth, email);
-      // console.log(`[DEBUG] SUCCESS! Firebase successfully sent the reset email to ${email}`);
-      setIsSubmitted(true);
+      setSuccess(true);
     } catch (err: any) {
-      // console.log(`[DEBUG] FIREBASE ERROR CAUGHT: ${err.code} - ${err.message}`);
-      // Security: Silently succeed if the email is not found to prevent enumeration
       if (err.code === 'auth/user-not-found') {
-        // console.log(`[DEBUG] SECURITY TRIGGERED: Email ${email} does not exist in Firebase. Faking success screen.`);
-        setIsSubmitted(true);
+        setSuccess(true);
       } else if (err.code === 'auth/invalid-email') {
         setErrorMsg('Please enter a valid email address.');
       } else {
@@ -46,32 +42,33 @@ export default function ForgotPasswordScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView className="flex-1 px-6 pt-4 pb-12" showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(16), paddingBottom: verticalScale(48) }} className="flex-1" showsVerticalScrollIndicator={false}>
 
-          <Pressable onPress={() => router.back()} className="mb-6 w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm mt-2">
-            <ArrowLeft size={20} color="#374151" />
+          <Pressable onPress={() => router.back()} style={{ marginBottom: verticalScale(24), width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-white items-center justify-center shadow-sm">
+            <ArrowLeft size={scale(20)} color="#374151" />
           </Pressable>
 
-          {!isSubmitted ? (
-            <View className="flex-1 mt-10">
-              <View className="mb-8">
-                <Text className="text-3xl font-bold text-gray-900 mb-2">Reset Password</Text>
-                <Text className="text-gray-500">Enter your email and we'll send you a link to reset your password.</Text>
-              </View>
+          <View style={{ marginBottom: verticalScale(32) }}>
+            <Text style={{ fontSize: moderateScale(28), marginBottom: verticalScale(8) }} className="font-bold text-gray-900">Reset Password</Text>
+            <Text style={{ fontSize: moderateScale(15) }} className="text-gray-500">Enter the email associated with your account and we'll send you a link to reset your password.</Text>
+          </View>
 
-              {errorMsg ? (
-                <View className="bg-red-50 p-3 rounded-xl mb-6 border border-red-100">
-                  <Text className="text-red-600 text-sm font-medium">{errorMsg}</Text>
-                </View>
-              ) : null}
+          {errorMsg ? (
+            <View style={{ padding: scale(12), borderRadius: scale(12), marginBottom: verticalScale(16) }} className="bg-red-50 border border-red-100">
+              <Text style={{ fontSize: moderateScale(13) }} className="text-red-600 font-medium">{errorMsg}</Text>
+            </View>
+          ) : null}
 
+          {!success ? (
+            <View>
               <View>
-                <Text className="text-gray-700 font-bold mb-2 ml-1">Email</Text>
-                <View className="flex-row items-center bg-white px-4 py-4 rounded-2xl border border-gray-200">
-                  <Mail size={20} color="#9CA3AF" className="mr-3" />
+                <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Email</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16) }} className="bg-white border border-gray-200 flex-row items-center">
+                  <Mail size={scale(20)} color="#9CA3AF" />
                   <TextInput
-                    className="flex-1 text-gray-900"
+                    style={{ flex: 1, marginLeft: scale(12), fontSize: moderateScale(15), color: '#111827' }}
                     placeholder="hello@example.com"
+                    placeholderTextColor="#9CA3AF"
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
@@ -83,26 +80,26 @@ export default function ForgotPasswordScreen() {
               <Pressable
                 onPress={handleResetPassword}
                 disabled={loading}
-                className={`mt-10 py-4 rounded-full items-center shadow-sm ${loading ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
+                style={{ marginTop: verticalScale(24), paddingVertical: verticalScale(16), borderRadius: scale(9999) }}
+                className={`items-center shadow-sm ${loading ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
               >
-                {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">Send Reset Link</Text>}
+                {loading ? <ActivityIndicator color="white" /> : <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Send Reset Link</Text>}
               </Pressable>
             </View>
           ) : (
-            <View className="flex-1 items-center justify-center mt-10">
-              <View className="w-20 h-20 bg-green-50 rounded-full items-center justify-center mb-6">
-                <CheckCircle2 size={40} color="#15803d" />
-              </View>
-              <Text className="text-2xl font-bold text-gray-900 mb-3 text-center">Check your inbox</Text>
-              <Text className="text-gray-500 text-center mb-10 px-4">
-                We've sent password reset instructions to <Text className="font-bold text-gray-700">{email}</Text>.
+            <View style={{ padding: scale(24), borderRadius: scale(24), marginTop: verticalScale(16) }} className="bg-white items-center border border-gray-100 shadow-sm">
+              <CheckCircle size={scale(64)} color="#10B981" style={{ marginBottom: verticalScale(16) }} />
+              <Text style={{ fontSize: moderateScale(20), marginBottom: verticalScale(8) }} className="font-bold text-gray-900">Check Your Email</Text>
+              <Text style={{ fontSize: moderateScale(15), marginBottom: verticalScale(24) }} className="text-gray-500 text-center">
+                We've sent password reset instructions to <Text className="font-bold text-gray-700">{email}</Text>. Please check your inbox and spam folder.
               </Text>
 
               <Pressable
-                onPress={() => router.replace('/(auth)/login')}
-                className="w-full py-4 rounded-full items-center bg-white border border-gray-200 shadow-sm"
+                onPress={() => router.replace('/(auth)/login' as any)}
+                style={{ width: '100%', paddingVertical: verticalScale(16), borderRadius: scale(9999) }}
+                className="items-center bg-white border border-gray-200 shadow-sm"
               >
-                <Text className="text-gray-800 font-bold text-lg">Back to Login</Text>
+                <Text style={{ fontSize: moderateScale(16) }} className="text-gray-800 font-bold">Back to Login</Text>
               </Pressable>
             </View>
           )}

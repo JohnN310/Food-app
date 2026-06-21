@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { openDirections } from '@/lib/utils';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -88,92 +89,91 @@ export default function OrderDetailsScreen() {
     <SafeAreaView className="flex-1 bg-[#FAFAF5]" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 relative">
-        <Pressable onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm z-10">
-          <ArrowLeft size={20} color="#374151" />
+      <View style={{ paddingHorizontal: scale(15), paddingVertical: verticalScale(15) }} className="flex-row items-center justify-between relative">
+        <Pressable onPress={() => router.back()} style={{ width: scale(38), height: scale(38) }} className="bg-white rounded-full items-center justify-center shadow-sm z-10">
+          <ArrowLeft size={scale(19)} color="#374151" />
         </Pressable>
         <View className="absolute left-0 right-0 items-center pointer-events-none">
-          <Text className="text-xl font-bold text-gray-900">Order Details</Text>
+          <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Order Details</Text>
         </View>
-        <Pressable className="flex-row items-center p-2 mr-1 active:bg-gray-100 rounded-full z-10">
-          <HelpCircle size={20} color="#1B7A49" />
-          <Text className="text-brandPrimary font-medium ml-1">Help</Text>
+        <Pressable style={{ padding: scale(7), marginRight: scale(4) }} className="flex-row items-center active:bg-gray-100 rounded-full z-10">
+          <HelpCircle size={scale(19)} color="#1B7A49" />
+          <Text style={{ fontSize: moderateScale(14), marginLeft: scale(4) }} className="text-brandPrimary font-medium">Help</Text>
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: scale(15), paddingBottom: verticalScale(15), paddingTop: verticalScale(4) }} showsVerticalScrollIndicator={false}>
 
         {/* Main Status Card */}
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm">
-          <View className="flex-row justify-between items-start mb-2">
+        <View style={{ padding: scale(18), marginBottom: 0, borderRadius: scale(22) }} className="bg-white border border-gray-100 shadow-sm">
+          <View style={{ marginBottom: verticalScale(7) }} className="flex-row justify-between items-start">
             <View>
-              <Text className="font-bold text-xl text-gray-900 mb-1">
+              <Text style={{ fontSize: moderateScale(18), marginBottom: verticalScale(8) }} className="font-bold text-gray-900">
                 Order #{order.id ? order.id.substring(0, 8).toUpperCase() : 'TSG-2487'}
               </Text>
-              <Text className="text-sm text-gray-500">Placed on {dateStr} at {timeStr}</Text>
+              <Text style={{ fontSize: moderateScale(14) }} className="text-gray-500">Placed on {dateStr} at {timeStr}</Text>
             </View>
             <View className="items-end">
-              <View className={`flex-row items-center px-3 py-1.5 rounded-lg border ${badgeBg}`}>
-                <StatusIcon size={14} color={iconColor} />
-                <Text className={`${badgeTextCol} font-bold text-xs ml-1.5`}>{statusText}</Text>
+              <View style={{ paddingHorizontal: scale(11), paddingVertical: verticalScale(5), borderRadius: scale(7) }} className={`flex-row items-center border ${badgeBg}`}>
+                <StatusIcon size={scale(13)} color={iconColor} />
+                <Text style={{ fontSize: moderateScale(12), marginLeft: scale(5) }} className={`${badgeTextCol} font-bold`}>{statusText}</Text>
               </View>
             </View>
           </View>
 
-          <View className="h-[1px] bg-gray-100 my-4" />
+          <View style={{ height: 1, marginVertical: verticalScale(14) }} className="bg-gray-100" />
 
           {/* Store Info */}
           <View className="flex-row items-center">
-            <Image source={require('../../assets/images/mascot_waving_1776538518453.png')} style={{ width: 48, height: 48 }} className="rounded-full bg-brandAccent-yellow" />
-            <View className="flex-1 ml-3">
-              <Text className="font-bold text-gray-900 text-base">{sellerData?.storeName || item.store}</Text>
-              <View className="flex-row items-center mt-0.5">
-                <Text className="text-gray-500 text-xs mr-3">{sellerData?.storeAddress || item.distance}</Text>
+            <Image source={require('../../assets/images/mascot_waving_1776538518453.png')} style={{ width: scale(44), height: scale(44) }} className="rounded-full bg-brandAccent-yellow" />
+            <View style={{ marginLeft: scale(11) }} className="flex-1">
+              <Text style={{ fontSize: moderateScale(16) }} className="font-bold text-gray-900">{sellerData?.storeName || item.store}</Text>
+              <View style={{ marginTop: verticalScale(6) }} className="flex-row items-center">
+                <Text style={{ fontSize: moderateScale(12), marginRight: scale(11) }} className="text-gray-500">{sellerData?.storeAddress || item.distance}</Text>
               </View>
             </View>
             <Pressable 
               onPress={() => router.push(`/chat/${order.id}` as any)}
-              className="flex-row items-center bg-white border border-gray-200 px-4 py-2 rounded-full"
+              style={{ paddingHorizontal: scale(14), paddingVertical: verticalScale(7) }}
+              className="flex-row items-center bg-white border border-gray-200 rounded-full"
             >
               <View className="relative">
-                <MessageSquare size={16} color="#374151" />
+                <MessageSquare size={scale(15)} color="#374151" />
                 {hasUnread && (
-                  <View className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
+                  <View style={{ width: scale(9), height: scale(9), top: verticalScale(-3), right: scale(-3) }} className="absolute bg-red-500 rounded-full border border-white" />
                 )}
               </View>
-              <Text className={`font-medium ml-2 text-sm ${hasUnread ? 'text-gray-900' : 'text-gray-700'}`}>Message</Text>
+              <Text style={{ fontSize: moderateScale(14), marginLeft: scale(7) }} className={`font-medium ${hasUnread ? 'text-gray-900' : 'text-gray-700'}`}>Message</Text>
             </Pressable>
           </View>
-
-
         </View>
 
         {/* Order Items */}
-        <Text className="font-bold text-gray-900 text-lg mb-2 px-1 mt-2">Order items</Text>
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm flex-row">
-          <Image source={{ uri: item.image }} style={{ width: 80, height: 80 }} className="rounded-2xl bg-gray-100" />
-          <View className="flex-1 ml-4 justify-between py-1">
+        <Text style={{ fontSize: moderateScale(17), marginBottom: verticalScale(16), paddingHorizontal: scale(4), marginTop: verticalScale(24) }} className="font-bold text-gray-900">Order items</Text>
+        <View style={{ padding: scale(18), marginBottom: 0, borderRadius: scale(22) }} className="bg-white border border-gray-100 shadow-sm flex-row">
+          <Image source={{ uri: item.image }} style={{ width: scale(72), height: scale(72), borderRadius: scale(14) }} className="bg-gray-100" />
+          <View style={{ marginLeft: scale(14), paddingVertical: verticalScale(3) }} className="flex-1 justify-between">
             <View>
-              <View className="flex-row items-center mb-0.5">
+              <View style={{ marginBottom: verticalScale(2) }} className="flex-row items-center">
                 {(order.quantity && order.quantity > 1) && (
-                  <View className="bg-gray-100 px-2 py-0.5 rounded-md mr-2 border border-gray-200">
-                    <Text className="text-gray-600 text-[10px] font-bold">Qty: {order.quantity}</Text>
+                  <View style={{ paddingHorizontal: scale(7), paddingVertical: verticalScale(2), marginRight: scale(7), borderRadius: scale(6) }} className="bg-gray-100 border border-gray-200">
+                    <Text style={{ fontSize: moderateScale(10) }} className="text-gray-600 font-bold">Qty: {order.quantity}</Text>
                   </View>
                 )}
-                <Text className="font-bold text-gray-900 text-lg flex-1" numberOfLines={1}>{item.title}</Text>
-                <View className="bg-brandPrimary-soft px-2 py-1 rounded-md ml-2">
-                  <Text className="text-brandPrimary text-[10px] font-bold">{item.discount}</Text>
+                <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-gray-900 flex-1" numberOfLines={1}>{item.title}</Text>
+                <View style={{ paddingHorizontal: scale(7), paddingVertical: verticalScale(3), marginLeft: scale(7), borderRadius: scale(6) }} className="bg-brandPrimary-soft">
+                  <Text style={{ fontSize: moderateScale(10) }} className="text-brandPrimary font-bold">{item.discount}</Text>
                 </View>
               </View>
-              <Text className="text-gray-500 text-xs leading-relaxed" numberOfLines={2}>
+              <Text style={{ fontSize: moderateScale(12) }} className="text-gray-500 leading-relaxed" numberOfLines={2}>
                 {item.description || 'Assorted items and baked goods'}
               </Text>
             </View>
-            <View className="flex-row items-end justify-between mt-2">
+            <View style={{ marginTop: verticalScale(7) }} className="flex-row items-end justify-between">
               {item.expiryTimestamp ? (
-                <View className="flex-row items-center mb-1">
-                  <Clock size={12} color="#DC2626" />
-                  <Text className="text-red-600 text-[10px] font-bold ml-1">
+                <View style={{ marginBottom: verticalScale(3) }} className="flex-row items-center">
+                  <Clock size={scale(11)} color="#DC2626" />
+                  <Text style={{ fontSize: moderateScale(10), marginLeft: scale(4) }} className="text-red-600 font-bold">
                     Good until: {new Date(item.expiryTimestamp).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                   </Text>
                 </View>
@@ -181,65 +181,66 @@ export default function OrderDetailsScreen() {
                 <View />
               )}
               <View className="flex-row items-baseline">
-                <Text className="text-gray-400 line-through text-[10px] mr-1">{item.oldPrice}</Text>
-                <Text className="font-bold text-brandPrimary text-lg">{item.price}</Text>
+                <Text style={{ fontSize: moderateScale(10), marginRight: scale(4) }} className="text-gray-400 line-through">{item.oldPrice}</Text>
+                <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-brandPrimary">{item.price}</Text>
               </View>
             </View>
           </View>
         </View>
 
         {/* Pickup Details */}
-        <Text className="font-bold text-gray-900 text-lg mb-2 px-1 mt-2">Pickup details</Text>
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-2 shadow-sm">
-          <View className="flex-row items-center mb-5">
-            <View className="w-10 h-10 bg-[#FAFAF5] rounded-full items-center justify-center mr-4 border border-gray-100">
-              <MapPin size={20} color="#1B7A49" />
+        <Text style={{ fontSize: moderateScale(17), marginBottom: verticalScale(16), paddingHorizontal: scale(4), marginTop: verticalScale(24) }} className="font-bold text-gray-900">Pickup details</Text>
+        <View style={{ padding: scale(18), marginBottom: 0, borderRadius: scale(22) }} className="bg-white border border-gray-100 shadow-sm">
+          <View style={{ marginBottom: verticalScale(18) }} className="flex-row items-center">
+            <View style={{ width: scale(36), height: scale(36), marginRight: scale(14) }} className="bg-[#FAFAF5] rounded-full items-center justify-center border border-gray-100">
+              <MapPin size={scale(18)} color="#1B7A49" />
             </View>
-            <View className="flex-1 mr-2">
-              <Text className="text-gray-500 text-xs mb-0.5">Pickup at</Text>
-              <Text className="font-bold text-gray-900">{sellerData?.storeName || item.store}</Text>
-              <Text className="text-gray-500 text-xs">{sellerData?.storeAddress || 'Address not provided'}</Text>
+            <View style={{ marginRight: scale(8) }} className="flex-1">
+              <Text style={{ fontSize: moderateScale(12), marginBottom: verticalScale(2) }} className="text-gray-500">Pickup at</Text>
+              <Text style={{ fontSize: moderateScale(16) }} className="font-bold text-gray-900">{sellerData?.storeName || item.store}</Text>
+              <Text style={{ fontSize: moderateScale(12) }} className="text-gray-500">{sellerData?.storeAddress || 'Address not provided'}</Text>
             </View>
             <Pressable 
               onPress={() => openDirections(sellerData?.storeAddress || '', sellerData?.storeName || item.store)}
-              className="flex-row items-center bg-white border border-brandPrimary/30 px-3 py-2 rounded-full active:opacity-70"
+              style={{ paddingHorizontal: scale(11), paddingVertical: verticalScale(7) }}
+              className="flex-row items-center bg-white border border-brandPrimary/30 rounded-full active:opacity-70"
             >
-              <Navigation size={14} color="#1B7A49" />
-              <Text className="text-brandPrimary font-medium ml-1.5 text-xs">Get directions</Text>
+              <Navigation size={scale(13)} color="#1B7A49" />
+              <Text style={{ fontSize: moderateScale(12), marginLeft: scale(5) }} className="text-brandPrimary font-medium">Get directions</Text>
             </Pressable>
           </View>
 
-          <View className="h-[1px] bg-gray-100 mb-5 ml-14" />
+          <View style={{ height: 1, marginBottom: verticalScale(18), marginLeft: scale(50) }} className="bg-gray-100" />
 
           <View className="flex-row items-center">
-            <View className="w-10 h-10 bg-[#FAFAF5] rounded-full items-center justify-center mr-4 border border-gray-100">
-              <Clock size={20} color="#1B7A49" />
+            <View style={{ width: scale(36), height: scale(36), marginRight: scale(14) }} className="bg-[#FAFAF5] rounded-full items-center justify-center border border-gray-100">
+              <Clock size={scale(18)} color="#1B7A49" />
             </View>
             <View className="flex-1">
-              <Text className="text-gray-500 text-xs mb-0.5">Pickup time</Text>
-              <Text className="font-bold text-gray-900">{item.time || '10:00 AM - 10:30 AM'}</Text>
+              <Text style={{ fontSize: moderateScale(12), marginBottom: verticalScale(2) }} className="text-gray-500">Pickup time</Text>
+              <Text style={{ fontSize: moderateScale(16) }} className="font-bold text-gray-900">{item.time || '10:00 AM - 10:30 AM'}</Text>
             </View>
 
           </View>
         </View>
 
         {/* Order Summary */}
-        <Text className="font-bold text-gray-900 text-lg mb-2 px-1 mt-2">Order summary</Text>
-        <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-8 shadow-sm">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-gray-600">Item price</Text>
-            <Text className="text-gray-900">{item.price}</Text>
+        <Text style={{ fontSize: moderateScale(17), marginBottom: verticalScale(16), paddingHorizontal: scale(4), marginTop: verticalScale(24) }} className="font-bold text-gray-900">Order summary</Text>
+        <View style={{ padding: scale(18), marginBottom: verticalScale(28), borderRadius: scale(22) }} className="bg-white border border-gray-100 shadow-sm">
+          <View style={{ marginBottom: verticalScale(10) }} className="flex-row justify-between items-center">
+            <Text style={{ fontSize: moderateScale(14) }} className="text-gray-600">Item price</Text>
+            <Text style={{ fontSize: moderateScale(14) }} className="text-gray-900">{item.price}</Text>
           </View>
           {(order.quantity && order.quantity > 1) && (
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-gray-600">Quantity</Text>
-              <Text className="text-gray-900">x{order.quantity}</Text>
+            <View style={{ marginBottom: verticalScale(10) }} className="flex-row justify-between items-center">
+              <Text style={{ fontSize: moderateScale(14) }} className="text-gray-600">Quantity</Text>
+              <Text style={{ fontSize: moderateScale(14) }} className="text-gray-900">x{order.quantity}</Text>
             </View>
           )}
-          <View className="h-[1px] bg-gray-100 my-2" />
-          <View className="flex-row justify-between items-center mt-1">
-            <Text className="font-bold text-gray-900">Total Paid</Text>
-            <Text className="font-bold text-brandPrimary text-xl">
+          <View style={{ height: 1, marginVertical: verticalScale(7) }} className="bg-gray-100" />
+          <View style={{ marginTop: verticalScale(4) }} className="flex-row justify-between items-center">
+            <Text style={{ fontSize: moderateScale(16) }} className="font-bold text-gray-900">Total Paid</Text>
+            <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-brandPrimary">
               ${(parseFloat((item.price || '$0').replace('$', '')) * (order.quantity || 1)).toFixed(2)}
             </Text>
           </View>

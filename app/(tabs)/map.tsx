@@ -4,9 +4,10 @@ import MapView, { Marker, Callout, Region } from 'react-native-maps';
 import { useAppStore } from '@/store/app-store';
 import { collection, onSnapshot, query, where, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
-import { Clock, Heart, ShoppingBag, X, Search } from 'lucide-react-native';
+import { Heart, MapPin, Search, ShoppingBag, X, Clock } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function MapScreen() {
   const MIN_HEIGHT = SCREEN_HEIGHT * 0.40;
   const COLLAPSED_OFFSET = MAX_HEIGHT - MIN_HEIGHT;
   const EXPANDED_OFFSET = 0;
-  const HIDDEN_OFFSET = MAX_HEIGHT + 100;
+  const HIDDEN_OFFSET = MAX_HEIGHT + verticalScale(100);
 
   const translateY = useRef(new Animated.Value(HIDDEN_OFFSET)).current;
   const currentOffset = useRef(HIDDEN_OFFSET);
@@ -75,7 +76,7 @@ export default function MapScreen() {
             useNativeDriver: false,
             friction: 8,
           }).start();
-        } else if (gestureState.vy > 1.5 || currentOffset.current > COLLAPSED_OFFSET + 80) {
+        } else if (gestureState.vy > 1.5 || currentOffset.current > COLLAPSED_OFFSET + verticalScale(80)) {
           setIsDismissed(true);
         } else {
           Animated.spring(translateY, {
@@ -255,7 +256,7 @@ export default function MapScreen() {
             description="Your home location"
             tracksViewChanges={false}
           >
-            <View className="w-6 h-6 bg-[#1B7A49] rounded-full border-2 border-white shadow-sm items-center justify-center" />
+            <View style={{ width: scale(24), height: scale(24) }} className="bg-[#1B7A49] rounded-full border-2 border-white shadow-sm items-center justify-center" />
           </Marker>
         )}
         
@@ -275,13 +276,13 @@ export default function MapScreen() {
                   setIsDismissed(false);
                 }}
               >
-                <View className={`w-8 h-8 rounded-full border-2 border-white shadow-sm items-center justify-center ${selectedSellerId === seller.id ? 'bg-[#1B7A49]' : 'bg-[#E53935]'}`}>
-                  <Text className="text-white text-xs font-bold">🏪</Text>
+                <View style={{ width: scale(32), height: scale(32) }} className={`rounded-full border-2 border-white shadow-sm items-center justify-center ${selectedSellerId === seller.id ? 'bg-[#1B7A49]' : 'bg-[#E53935]'}`}>
+                  <Text style={{ fontSize: moderateScale(12) }} className="text-white font-bold">🏪</Text>
                 </View>
                 <Callout>
-                  <View className="p-2 w-48">
-                    <Text className="font-bold text-gray-900 mb-1">{seller.storeName || 'Store'}</Text>
-                    <Text className="text-gray-500 text-xs">{seller.storeAddress || 'No address provided'}</Text>
+                  <View style={{ padding: scale(8), width: scale(192) }}>
+                    <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-900 mb-1">{seller.storeName || 'Store'}</Text>
+                    <Text style={{ fontSize: moderateScale(12) }} className="text-gray-500">{seller.storeAddress || 'No address provided'}</Text>
                   </View>
                 </Callout>
               </Marker>
@@ -294,56 +295,59 @@ export default function MapScreen() {
       {/* Search Bar Overlay */}
       <Animated.View 
         style={{ 
-          paddingTop: Math.max(insets.top, 16),
+          paddingTop: Math.max(insets.top, verticalScale(16)),
           opacity: searchBarOpacity,
-          transform: [{ translateY: searchBarTranslateY }]
+          transform: [{ translateY: searchBarTranslateY }],
+          paddingHorizontal: scale(16)
         }} 
-        className="absolute top-0 left-0 right-0 z-20 px-4" 
+        className="absolute top-0 left-0 right-0 z-20" 
         pointerEvents="box-none"
       >
-        <View className="bg-white flex-row items-center rounded-full px-4 py-3 shadow-md border border-gray-100" style={{ elevation: 5 }}>
-          <Search size={20} color="#6B7280" />
+        <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), elevation: 5 }} className="bg-white flex-row items-center rounded-full shadow-md border border-gray-100">
+          <Search size={scale(20)} color="#6B7280" />
           <TextInput
             placeholder="Search stores or deals..."
             placeholderTextColor="#6B7280"
             value={searchQuery}
             onChangeText={setSearchQuery}
             onFocus={() => setIsSearching(true)}
-            className="flex-1 ml-3 text-[15px] text-gray-900"
+            style={{ fontSize: moderateScale(15) }}
+            className="flex-1 ml-3 text-gray-900"
             returnKeyType="search"
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => { setSearchQuery(''); setIsSearching(false); Keyboard.dismiss(); }} className="p-1">
-              <X size={16} color="#6B7280" />
+            <Pressable onPress={() => { setSearchQuery(''); setIsSearching(false); Keyboard.dismiss(); }} style={{ padding: scale(4) }}>
+              <X size={scale(16)} color="#6B7280" />
             </Pressable>
           )}
         </View>
 
         {/* Search Results Dropdown */}
         {isSearching && searchQuery.trim().length > 0 && (
-          <View className="bg-white rounded-2xl mt-2 max-h-80 shadow-lg overflow-hidden border border-gray-100" style={{ elevation: 5 }}>
+          <View style={{ marginTop: verticalScale(8), borderRadius: scale(16), maxHeight: verticalScale(320), elevation: 5 }} className="bg-white shadow-lg overflow-hidden border border-gray-100">
             <ScrollView keyboardShouldPersistTaps="handled">
               {searchResults.stores.length === 0 && searchResults.items.length === 0 ? (
-                <View className="p-5 items-center">
-                  <Text className="text-gray-500">No results found</Text>
+                <View style={{ padding: scale(20) }} className="items-center">
+                  <Text style={{ fontSize: moderateScale(14) }} className="text-gray-500">No results found</Text>
                 </View>
               ) : (
                 <>
                   {searchResults.stores.length > 0 && (
                     <View>
-                      <Text className="px-4 py-2 text-xs font-bold text-gray-400 uppercase bg-gray-50">Stores</Text>
+                      <Text style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), fontSize: moderateScale(12) }} className="font-bold text-gray-400 uppercase bg-gray-50">Stores</Text>
                       {searchResults.stores.map((store: any) => (
                         <Pressable 
                           key={`store-${store.id}`}
-                          className="px-4 py-3 border-b border-gray-100 flex-row items-center bg-white"
+                          style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12) }}
+                          className="border-b border-gray-100 flex-row items-center bg-white"
                           onPress={() => handleSelectSearchResult(store.id, store.latitude, store.longitude)}
                         >
-                          <View className="w-8 h-8 bg-[#F1F8F4] rounded-full items-center justify-center mr-3">
-                            <Text className="text-xs">🏪</Text>
+                          <View style={{ width: scale(32), height: scale(32), marginRight: scale(12) }} className="bg-[#F1F8F4] rounded-full items-center justify-center">
+                            <Text style={{ fontSize: moderateScale(12) }}>🏪</Text>
                           </View>
                           <View className="flex-1">
-                            <Text className="font-bold text-gray-900">{store.storeName}</Text>
-                            <Text className="text-xs text-gray-500" numberOfLines={1}>{store.storeAddress}</Text>
+                            <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-900">{store.storeName}</Text>
+                            <Text style={{ fontSize: moderateScale(12) }} className="text-gray-500" numberOfLines={1}>{store.storeAddress}</Text>
                           </View>
                         </Pressable>
                       ))}
@@ -351,26 +355,27 @@ export default function MapScreen() {
                   )}
                   {searchResults.items.length > 0 && (
                     <View>
-                      <Text className="px-4 py-2 text-xs font-bold text-gray-400 uppercase bg-gray-50">Deals</Text>
+                      <Text style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), fontSize: moderateScale(12) }} className="font-bold text-gray-400 uppercase bg-gray-50">Deals</Text>
                       {searchResults.items.map((item: any) => {
                         const store = sellersList.find(s => s.id === item.sellerId);
                         if (!store) return null;
                         return (
                           <Pressable 
                             key={`item-${item.id}`}
-                            className="px-4 py-3 border-b border-gray-100 flex-row items-center bg-white"
+                            style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12) }}
+                            className="border-b border-gray-100 flex-row items-center bg-white"
                             onPress={() => handleSelectSearchResult(store.id, store.latitude, store.longitude)}
                           >
                             {item.image ? (
-                              <Image source={{ uri: item.image }} className="w-8 h-8 rounded-md mr-3" />
+                              <Image source={{ uri: item.image }} style={{ width: scale(32), height: scale(32), borderRadius: scale(6), marginRight: scale(12) }} />
                             ) : (
-                              <View className="w-8 h-8 bg-[#F1F8F4] rounded-md items-center justify-center mr-3">
-                                <ShoppingBag size={14} color="#1B7A49" />
+                              <View style={{ width: scale(32), height: scale(32), borderRadius: scale(6), marginRight: scale(12) }} className="bg-[#F1F8F4] items-center justify-center">
+                                <ShoppingBag size={scale(14)} color="#1B7A49" />
                               </View>
                             )}
                             <View className="flex-1">
-                              <Text className="font-bold text-gray-900" numberOfLines={1}>{item.title}</Text>
-                              <Text className="text-xs text-gray-500">at {store.storeName}</Text>
+                              <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-900" numberOfLines={1}>{item.title}</Text>
+                              <Text style={{ fontSize: moderateScale(12) }} className="text-gray-500">at {store.storeName}</Text>
                             </View>
                           </Pressable>
                         );
@@ -386,14 +391,14 @@ export default function MapScreen() {
 
       {/* Floating Reopen Button */}
       {isDismissed && visibleListings.length > 0 && (
-        <View className="absolute bottom-6 left-0 right-0 items-center">
+        <View style={{ bottom: verticalScale(24) }} className="absolute left-0 right-0 items-center">
           <Pressable 
             onPress={() => setIsDismissed(false)}
-            className="bg-[#1B7A49] px-5 py-3 rounded-full shadow-lg flex-row items-center"
-            style={{ elevation: 5 }}
+            style={{ paddingHorizontal: scale(20), paddingVertical: verticalScale(12), borderRadius: scale(24), elevation: 5 }}
+            className="bg-[#1B7A49] shadow-lg flex-row items-center"
           >
-            <ShoppingBag size={16} color="white" />
-            <Text className="text-white font-bold ml-2">Show {visibleListings.length} deals</Text>
+            <ShoppingBag size={scale(16)} color="white" />
+            <Text style={{ fontSize: moderateScale(14) }} className="text-white font-bold ml-2">Show {visibleListings.length} deals</Text>
           </Pressable>
         </View>
       )}
@@ -418,17 +423,17 @@ export default function MapScreen() {
           style={{ 
             height: innerHeight,
             backgroundColor: '#FAFAF5',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
+            borderTopLeftRadius: scale(24),
+            borderTopRightRadius: scale(24),
             width: '100%',
           }}
         >
           <View {...panResponder.panHandlers} className="w-full bg-transparent z-10">
-            <View className="w-full pt-4 pb-2">
-              <View className="w-12 h-1.5 bg-gray-300 rounded-full self-center" />
+            <View style={{ paddingTop: verticalScale(16), paddingBottom: verticalScale(8) }} className="w-full">
+              <View style={{ width: scale(48), height: verticalScale(6) }} className="bg-gray-300 rounded-full self-center" />
             </View>
-            <View className="px-5 pb-3 flex-row justify-between items-center pointer-events-auto">
-              <Text className="text-lg font-bold text-gray-900" numberOfLines={1} style={{ flex: 1, paddingRight: 10 }}>
+            <View style={{ paddingHorizontal: scale(20), paddingBottom: verticalScale(12) }} className="flex-row justify-between items-center pointer-events-auto">
+              <Text style={{ fontSize: moderateScale(18), flex: 1, paddingRight: scale(10) }} className="font-bold text-gray-900" numberOfLines={1}>
                 {visibleListings.length} {visibleListings.length === 1 ? 'deal' : 'deals'} {selectedSellerId ? `from ${sellersList.find(s => s.id === selectedSellerId)?.storeName || 'Store'}` : 'in this area'}
               </Text>
               <Pressable 
@@ -436,17 +441,18 @@ export default function MapScreen() {
                   setIsDismissed(true);
                   setSelectedSellerId(null);
                 }}
-                className="p-1.5 bg-gray-100 rounded-full"
+                style={{ padding: scale(6) }}
+                className="bg-gray-100 rounded-full"
               >
-                <X size={18} color="#6B7280" />
+                <X size={scale(18)} color="#6B7280" />
               </Pressable>
             </View>
           </View>
         
         <ScrollView 
-          className="px-5"
+          style={{ paddingHorizontal: scale(20) }}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 30 }}
+          contentContainerStyle={{ paddingBottom: verticalScale(30) }}
         >
           {visibleListings.map(item => {
             const seller = sellersList.find(s => s.id === item.sellerId);
@@ -465,37 +471,39 @@ export default function MapScreen() {
                     })
                   }
                 })}
-                className="bg-white rounded-[20px] border border-gray-100 p-4 mb-4 shadow-sm flex-row items-center"
+                style={{ borderRadius: scale(20), padding: scale(16), marginBottom: verticalScale(16) }}
+                className="bg-white border border-gray-100 shadow-sm flex-row items-center"
               >
-                <View className="w-[72px] h-[72px] bg-gray-100 rounded-xl overflow-hidden mr-4">
+                <View style={{ width: scale(72), height: scale(72), borderRadius: scale(12), marginRight: scale(16) }} className="bg-gray-100 overflow-hidden">
                   {item.image ? (
-                    <Image source={{ uri: item.image }} style={{ width: 72, height: 72 }} />
+                    <Image source={{ uri: item.image }} style={{ width: scale(72), height: scale(72) }} />
                   ) : (
                     <View className="flex-1 items-center justify-center bg-[#F1F8F4]">
-                      <ShoppingBag size={24} color="#1B7A49" />
+                      <ShoppingBag size={scale(24)} color="#1B7A49" />
                     </View>
                   )}
                 </View>
                 
-                <View className="flex-1 justify-center py-1">
-                  <Text className="font-bold text-gray-900 text-[17px] mb-1" numberOfLines={1}>{item.title}</Text>
-                  <Text className="text-gray-500 text-[12px] mb-1.5">{seller?.storeName || item.store}</Text>
+                <View style={{ paddingVertical: verticalScale(4) }} className="flex-1 justify-center">
+                  <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-gray-900 mb-1" numberOfLines={1}>{item.title}</Text>
+                  <Text style={{ fontSize: moderateScale(12) }} className="text-gray-500 mb-1.5">{seller?.storeName || item.store}</Text>
                   
-                  <View className="flex-row items-center justify-between mt-1">
+                  <View style={{ marginTop: verticalScale(4) }} className="flex-row items-center justify-between">
                     <View className="flex-row items-center">
-                      <Clock size={12} color="#6B7280" />
-                      <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.time || "Time not set"}</Text>
+                      <Clock size={scale(12)} color="#6B7280" />
+                      <Text style={{ fontSize: moderateScale(11), marginLeft: scale(6) }} className="text-gray-500 font-medium">{item.time || "Time not set"}</Text>
                     </View>
                     <View className="flex-row items-center gap-3">
                       <View className="items-end">
-                        <Text className="font-bold text-brandPrimary text-[15px]">{item.price}</Text>
-                        <Text className="text-gray-400 line-through text-[10px]">{item.oldPrice}</Text>
+                        <Text style={{ fontSize: moderateScale(15) }} className="font-bold text-brandPrimary">{item.price}</Text>
+                        <Text style={{ fontSize: moderateScale(10) }} className="text-gray-400 line-through">{item.oldPrice}</Text>
                       </View>
                       <Pressable
                         onPress={(e) => { e.stopPropagation(); toggleSavedItem(item.id.toString()); }}
-                        className="p-1.5 bg-gray-50 rounded-full border border-gray-100"
+                        style={{ padding: scale(6) }}
+                        className="bg-gray-50 rounded-full border border-gray-100"
                       >
-                        <Heart size={16} color={isSaved ? "#E53935" : "#9CA3AF"} fill={isSaved ? "#E53935" : "transparent"} />
+                        <Heart size={scale(16)} color={isSaved ? "#E53935" : "#9CA3AF"} fill={isSaved ? "#E53935" : "transparent"} />
                       </Pressable>
                     </View>
                   </View>

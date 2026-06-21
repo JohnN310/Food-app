@@ -10,6 +10,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
 import { FontAwesome } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -91,30 +92,32 @@ export default function LoginScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <View className="flex-1 px-6 justify-center">
+        <View style={{ paddingHorizontal: scale(24) }} className="flex-1 justify-center">
 
-          <View className="items-center mb-10">
+          <View style={{ marginBottom: verticalScale(40) }} className="items-center">
             <Image
               source={require('../../assets/images/mascot_default_1776538504308.png')}
-              style={{ width: 120, height: 120, marginBottom: 20 }}
+              style={{ width: scale(120), height: scale(120), marginBottom: verticalScale(20) }}
               resizeMode="contain"
             />
-            <Text className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</Text>
-            <Text className="text-gray-500 text-center">Sign in to rescue more amazing food and fight waste!</Text>
+            <Text style={{ fontSize: moderateScale(28), marginBottom: verticalScale(8) }} className="font-bold text-gray-900">Welcome Back</Text>
+            <Text style={{ fontSize: moderateScale(14) }} className="text-gray-500 text-center">Sign in to rescue more amazing food and fight waste!</Text>
           </View>
 
           {errorMsg ? (
-            <View className="bg-red-50 p-3 rounded-xl mb-4 border border-red-100">
-              <Text className="text-red-600 text-sm font-medium">{errorMsg}</Text>
+            <View style={{ padding: scale(12), borderRadius: scale(12), marginBottom: verticalScale(16) }} className="bg-red-50 border border-red-100">
+              <Text style={{ fontSize: moderateScale(13) }} className="text-red-600 font-medium">{errorMsg}</Text>
             </View>
           ) : null}
 
-          <View className="space-y-4">
+          <View>
             <View>
-              <Text className="text-gray-700 font-bold mb-2 ml-1">Email</Text>
+              <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Email</Text>
               <TextInput
-                className="bg-white px-4 py-4 rounded-2xl border border-gray-200 text-gray-900"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                className="bg-white border border-gray-200 text-gray-900"
                 placeholder="hello@example.com"
+                placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -122,49 +125,53 @@ export default function LoginScreen() {
               />
             </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-700 font-bold mb-2 ml-1">Password</Text>
+            <View style={{ marginTop: verticalScale(16) }}>
+              <Text style={{ fontSize: moderateScale(14), marginBottom: verticalScale(8), marginLeft: scale(4) }} className="text-gray-700 font-bold">Password</Text>
               <TextInput
-                className="bg-white px-4 py-4 rounded-2xl border border-gray-200 text-gray-900"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16), borderRadius: scale(16), fontSize: moderateScale(15) }}
+                className="bg-white border border-gray-200 text-gray-900"
                 placeholder="••••••••"
+                placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
               />
             </View>
 
-            <Pressable onPress={() => router.push('/(auth)/forgot-password')} className="mt-2 items-end">
-              <Text className="text-brandPrimary font-medium">Forgot password?</Text>
+            <Pressable onPress={() => router.push('/(auth)/forgot-password' as any)} style={{ marginTop: verticalScale(8) }} className="items-end">
+              <Text style={{ fontSize: moderateScale(14) }} className="text-brandPrimary font-medium">Forgot password?</Text>
             </Pressable>
           </View>
 
           <Pressable
             onPress={handleLogin}
             disabled={loading}
-            className={`mt-8 py-4 rounded-full items-center shadow-sm ${loading ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
+            style={{ marginTop: verticalScale(32), paddingVertical: verticalScale(16), borderRadius: scale(9999) }}
+            className={`items-center shadow-sm ${loading ? 'bg-brandPrimary-soft' : 'bg-brandPrimary'}`}
           >
-            {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">Sign In</Text>}
+            {loading ? <ActivityIndicator color="white" /> : <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Sign In</Text>}
           </Pressable>
 
-          <View className="flex-row items-center my-6">
+          <View style={{ marginVertical: verticalScale(24) }} className="flex-row items-center">
             <View className="flex-1 h-px bg-gray-200" />
-            <Text className="text-gray-400 font-medium mx-4">OR</Text>
+            <Text style={{ fontSize: moderateScale(14), marginHorizontal: scale(16) }} className="text-gray-400 font-medium">OR</Text>
             <View className="flex-1 h-px bg-gray-200" />
           </View>
 
           <Pressable
             onPress={() => promptAsync()}
             disabled={!request || loading}
-            className="py-4 rounded-full flex-row items-center justify-center bg-white border border-gray-200 shadow-sm active:bg-gray-50"
+            style={{ paddingVertical: verticalScale(16), borderRadius: scale(9999) }}
+            className="flex-row items-center justify-center bg-white border border-gray-200 shadow-sm active:bg-gray-50"
           >
-            <FontAwesome name="google" size={20} color="#DB4437" style={{ marginRight: 12 }} />
-            <Text className="text-gray-700 font-bold text-lg">Continue with Google</Text>
+            <FontAwesome name="google" size={scale(20)} color="#DB4437" style={{ marginRight: scale(12) }} />
+            <Text style={{ fontSize: moderateScale(16) }} className="text-gray-700 font-bold">Continue with Google</Text>
           </Pressable>
 
-          <View className="flex-row justify-center mt-8">
-            <Text className="text-gray-500">Don't have an account? </Text>
-            <Pressable onPress={() => router.push('/(auth)/signup')}>
-              <Text className="text-brandPrimary font-bold">Sign Up</Text>
+          <View style={{ marginTop: verticalScale(32) }} className="flex-row justify-center">
+            <Text style={{ fontSize: moderateScale(14) }} className="text-gray-500">Don't have an account? </Text>
+            <Pressable onPress={() => router.push('/(auth)/signup' as any)}>
+              <Text style={{ fontSize: moderateScale(14) }} className="text-brandPrimary font-bold">Sign Up</Text>
             </Pressable>
           </View>
 

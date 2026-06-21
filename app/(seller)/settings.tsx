@@ -22,21 +22,22 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 const { height } = Dimensions.get('window');
 
 
 function MenuItem({ icon, title, subtitle, onPress, iconBgColor = 'bg-brandPrimary-soft', titleStyle = 'text-gray-900' }: any) {
   return (
-    <Pressable onPress={onPress} className="flex-row items-center p-4 active:bg-gray-50">
-      <View className={`w-12 h-12 rounded-full items-center justify-center ${iconBgColor}`}>
+    <Pressable onPress={onPress} style={{ padding: scale(16) }} className="flex-row items-center active:bg-gray-50">
+      <View style={{ width: scale(48), height: scale(48), borderRadius: scale(24) }} className={`items-center justify-center ${iconBgColor}`}>
         {icon}
       </View>
-      <View className="flex-1 ml-4 justify-center">
-        <Text className={`font-bold ${titleStyle}`}>{title}</Text>
-        {subtitle && <Text className="text-gray-400 text-xs mt-0.5">{subtitle}</Text>}
+      <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+        <Text style={{ fontSize: moderateScale(15) }} className={`font-bold ${titleStyle}`}>{title}</Text>
+        {subtitle && <Text style={{ fontSize: moderateScale(11), marginTop: verticalScale(2) }} className="text-gray-400">{subtitle}</Text>}
       </View>
-      <ChevronRight size={20} color="#D1D5DB" />
+      <ChevronRight size={scale(20)} color="#D1D5DB" />
     </Pressable>
   );
 }
@@ -167,12 +168,12 @@ export default function SellerSettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ paddingHorizontal: scale(16), paddingTop: verticalScale(24) }} className="flex-1" showsVerticalScrollIndicator={false}>
 
         {/* Header */}
-        <View className="mb-6">
-          <Text className="text-gray-400 text-sm font-medium">Seller Portal</Text>
-          <Text className="text-3xl font-bold text-gray-900">Settings</Text>
+        <View style={{ marginBottom: verticalScale(24) }}>
+          <Text style={{ fontSize: moderateScale(13) }} className="text-gray-400 font-medium">Seller Portal</Text>
+          <Text style={{ fontSize: moderateScale(28) }} className="font-bold text-gray-900">Settings</Text>
         </View>
 
         <Modal visible={isEditing} animationType="fade" transparent={true} onRequestClose={closeEditModal}>
@@ -183,54 +184,55 @@ export default function SellerSettingsScreen() {
               onPress={closeEditModal}
             />
             <Animated.View
-              style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%' }}
-              className="bg-background rounded-t-[32px] pt-4 pb-10 shadow-2xl"
+              style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%', paddingTop: verticalScale(16), paddingBottom: verticalScale(40), borderTopLeftRadius: scale(32), borderTopRightRadius: scale(32) }}
+              className="bg-background shadow-2xl"
             >
-              <View className="flex-row items-center justify-between px-6 pt-4 pb-4 border-b border-gray-100 mb-4">
-                <Text className="text-2xl font-bold text-gray-900">Edit Profile</Text>
-                <Pressable onPress={closeEditModal} className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center">
-                  <X size={20} color="#374151" />
+              <View style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(16), paddingBottom: verticalScale(16), marginBottom: verticalScale(16) }} className="flex-row items-center justify-between border-b border-gray-100">
+                <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Edit Profile</Text>
+                <Pressable onPress={closeEditModal} style={{ width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-gray-100 items-center justify-center">
+                  <X size={scale(20)} color="#374151" />
                 </Pressable>
               </View>
-              <ScrollView className="px-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <ScrollView style={{ paddingHorizontal: scale(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Display Name</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <User size={20} color="#9CA3AF" />
-                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" placeholderTextColor="#6B7280" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Display Name</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginBottom: verticalScale(16), borderRadius: scale(16) }} className="flex-row items-center bg-white border border-gray-100 shadow-sm">
+                  <User size={scale(20)} color="#9CA3AF" />
+                  <TextInput value={username} onChangeText={setUsername} placeholder="Your Name" placeholderTextColor="#6B7280" style={{ fontSize: moderateScale(15), marginLeft: scale(12) }} className="flex-1 text-gray-900 font-medium" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Phone Number</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <Phone size={20} color="#9CA3AF" />
-                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Phone Number</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginBottom: verticalScale(16), borderRadius: scale(16) }} className="flex-row items-center bg-white border border-gray-100 shadow-sm">
+                  <Phone size={scale(20)} color="#9CA3AF" />
+                  <TextInput value={phone} onChangeText={setPhone} placeholder="(555) 000-0000" placeholderTextColor="#6B7280" keyboardType="phone-pad" style={{ fontSize: moderateScale(15), marginLeft: scale(12) }} className="flex-1 text-gray-900 font-medium" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Store Name</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <Store size={20} color="#9CA3AF" />
-                  <TextInput value={storeName} onChangeText={setStoreName} placeholder="Store Name" placeholderTextColor="#6B7280" className="flex-1 ml-3 text-gray-900 font-medium text-base" />
+                <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Store Name</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginBottom: verticalScale(16), borderRadius: scale(16) }} className="flex-row items-center bg-white border border-gray-100 shadow-sm">
+                  <Store size={scale(20)} color="#9CA3AF" />
+                  <TextInput value={storeName} onChangeText={setStoreName} placeholder="Store Name" placeholderTextColor="#6B7280" style={{ fontSize: moderateScale(15), marginLeft: scale(12) }} className="flex-1 text-gray-900 font-medium" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Store Description</Text>
-                <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-gray-100 mb-4 shadow-sm">
-                  <TextInput value={storeDescription} onChangeText={setStoreDescription} placeholder="Short description" placeholderTextColor="#6B7280" multiline className="flex-1 text-gray-900 font-medium text-base h-20" textAlignVertical="top" />
+                <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Store Description</Text>
+                <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), marginBottom: verticalScale(16), borderRadius: scale(16) }} className="flex-row items-center bg-white border border-gray-100 shadow-sm">
+                  <TextInput value={storeDescription} onChangeText={setStoreDescription} placeholder="Short description" placeholderTextColor="#6B7280" multiline style={{ fontSize: moderateScale(15), height: verticalScale(80) }} className="flex-1 text-gray-900 font-medium" textAlignVertical="top" />
                 </View>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Merchant Type</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-4">
+                <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Merchant Type</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: verticalScale(16) }} className="flex-row">
                   {['Restaurant', 'Café', 'Bakery', 'Beverage Shop', 'Food Stall', 'Grocery / Supermarket', 'Hotel / Catering', 'Other'].map((type) => (
                     <Pressable
                       key={type}
                       onPress={() => setMerchantType(type)}
-                      className={`mr-3 px-4 py-2 rounded-xl flex-row items-center border ${merchantType === type ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-100'}`}
+                      style={{ marginRight: scale(12), paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(12) }}
+                      className={`flex-row items-center border ${merchantType === type ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-100'}`}
                     >
-                      <Text className={`font-bold text-sm ${merchantType === type ? 'text-white' : 'text-gray-600'}`}>{type}</Text>
+                      <Text style={{ fontSize: moderateScale(13) }} className={`font-bold ${merchantType === type ? 'text-white' : 'text-gray-600'}`}>{type}</Text>
                     </Pressable>
                   ))}
                 </ScrollView>
 
-                <Text className="text-gray-500 text-sm font-semibold mb-2">Store Address</Text>
+                <Text style={{ fontSize: moderateScale(13), marginBottom: verticalScale(8) }} className="text-gray-500 font-semibold">Store Address</Text>
                 <AddressAutocomplete
                   value={storeAddress}
                   onChangeAddress={(address, lat, lon) => {
@@ -242,88 +244,88 @@ export default function SellerSettingsScreen() {
                 />
 
                 {hasChanges ? (
-                  <Pressable onPress={handleSaveProfile} disabled={isSaving} className={`flex-row items-center justify-center p-4 rounded-full mb-10 ${isSaving ? 'bg-brandPrimary-hover opacity-70' : 'bg-brandPrimary'}`}>
-                    {isSaving ? <ActivityIndicator color="white" /> : <><Save size={20} color="white" /><Text className="text-white font-bold text-lg ml-2">Save Changes</Text></>}
+                  <Pressable onPress={handleSaveProfile} disabled={isSaving} style={{ padding: scale(16), borderRadius: scale(9999), marginBottom: verticalScale(40) }} className={`flex-row items-center justify-center ${isSaving ? 'bg-brandPrimary-hover opacity-70' : 'bg-brandPrimary'}`}>
+                    {isSaving ? <ActivityIndicator color="white" /> : <><Save size={scale(20)} color="white" /><Text style={{ fontSize: moderateScale(16), marginLeft: scale(8) }} className="text-white font-bold">Save Changes</Text></>}
                   </Pressable>
                 ) : (
-                  <View className="mb-10" />
+                  <View style={{ marginBottom: verticalScale(40) }} />
                 )}
               </ScrollView>
             </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
-        <View className="bg-white rounded-3xl p-5 mb-8 border border-gray-100 shadow-sm flex-row items-center">
-          <View className="w-16 h-16 bg-brandPrimary-soft rounded-full items-center justify-center">
-            <Store size={32} color="#1B7A49" />
+        <View style={{ padding: scale(20), marginBottom: verticalScale(32), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm flex-row items-center">
+          <View style={{ width: scale(64), height: scale(64), borderRadius: scale(32) }} className="bg-brandPrimary-soft items-center justify-center">
+            <Store size={scale(32)} color="#1B7A49" />
           </View>
-          <View className="flex-1 ml-4 justify-center">
-            <Text className="font-bold text-gray-900 text-lg">{username}</Text>
+          <View style={{ marginLeft: scale(16) }} className="flex-1 justify-center">
+            <Text style={{ fontSize: moderateScale(16) }} className="font-bold text-gray-900">{username}</Text>
             {/* <Text className="text-gray-400 text-xs mb-1">ID TSG-{user?.uid?.slice(0, 8).toUpperCase() || '8421'}</Text> */}
-            <View className="bg-[#FFF4E5] self-start px-2 py-0.5 rounded-md mt-1">
-              <Text className="text-[#78350F] text-[10px] font-bold">🏪 Seller mode</Text>
+            <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), borderRadius: scale(6), marginTop: verticalScale(4) }} className="bg-[#FFF4E5] self-start">
+              <Text style={{ fontSize: moderateScale(10) }} className="text-[#78350F] font-bold">🏪 Seller mode</Text>
             </View>
           </View>
-          <Pressable onPress={openEditModal} className="bg-brandPrimary px-4 py-2 rounded-full">
-            <Text className="text-white font-bold">Edit</Text>
+          <Pressable onPress={openEditModal} style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(9999) }} className="bg-brandPrimary">
+            <Text style={{ fontSize: moderateScale(13) }} className="text-white font-bold">Edit</Text>
           </Pressable>
         </View>
 
         {/* Account */}
-        <Text className="font-bold text-gray-400 text-xs tracking-wider mb-2 ml-1">ACCOUNT</Text>
-        <View className="bg-white rounded-3xl mb-8 border border-gray-100 shadow-sm overflow-hidden">
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(4), letterSpacing: 1 }} className="font-bold text-gray-400 uppercase">ACCOUNT</Text>
+        <View style={{ marginBottom: verticalScale(32), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
           <MenuItem
-            icon={<CreditCard size={20} color="#1B7A49" />}
+            icon={<CreditCard size={scale(20)} color="#1B7A49" />}
             title="Payout methods"
             subtitle="Bank accounts & payment settings"
-            onPress={() => router.push('/profile/payment-methods')}
+            onPress={() => router.push('/profile/payment-methods' as any)}
           />
-          <View className="h-px bg-gray-50 ml-16" />
+          <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           <MenuItem
-            icon={<Bell size={20} color="#1B7A49" />}
+            icon={<Bell size={scale(20)} color="#1B7A49" />}
             title="Notifications"
             subtitle="Order alerts, promotions & news"
-            onPress={() => router.push('/profile/settings')}
+            onPress={() => router.push('/profile/settings' as any)}
           />
         </View>
 
         {/* Help & Policies */}
-        <Text className="font-bold text-gray-400 text-xs tracking-wider mb-2 ml-1">HELP & POLICIES</Text>
-        <View className="bg-white rounded-3xl mb-8 border border-gray-100 shadow-sm overflow-hidden">
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(4), letterSpacing: 1 }} className="font-bold text-gray-400 uppercase">HELP & POLICIES</Text>
+        <View style={{ marginBottom: verticalScale(32), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
           <MenuItem
-            icon={<HelpCircle size={20} color="#1B7A49" />}
+            icon={<HelpCircle size={scale(20)} color="#1B7A49" />}
             title="Seller support"
             subtitle="Get help with orders and listings"
-            onPress={() => router.push('/profile/support')}
+            onPress={() => router.push('/profile/support' as any)}
           />
-          <View className="h-px bg-gray-50 ml-16" />
+          <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           <MenuItem
-            icon={<Shield size={20} color="#1B7A49" />}
+            icon={<Shield size={scale(20)} color="#1B7A49" />}
             title="Policies & terms"
             subtitle="Seller agreement, data & privacy"
-            onPress={() => router.push('/profile/policies')}
+            onPress={() => router.push('/profile/policies' as any)}
           />
-          <View className="h-px bg-gray-50 ml-16" />
+          <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           <MenuItem
-            icon={<Settings size={20} color="#1B7A49" />}
+            icon={<Settings size={scale(20)} color="#1B7A49" />}
             title="App preferences"
             subtitle="Language, display & more"
-            onPress={() => router.push('/profile/settings')}
+            onPress={() => router.push('/profile/settings' as any)}
           />
         </View>
 
 
         {/* Account Actions */}
-        <Text className="font-bold text-gray-400 text-xs tracking-wider mb-2 ml-1">ACCOUNT ACTIONS</Text>
-        <View className="bg-white rounded-3xl mb-8 border border-gray-100 shadow-sm overflow-hidden">
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(4), letterSpacing: 1 }} className="font-bold text-gray-400 uppercase">ACCOUNT ACTIONS</Text>
+        <View style={{ marginBottom: verticalScale(32), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
           <MenuItem
-            icon={<LogOut size={20} color="#1B7A49" />}
+            icon={<LogOut size={scale(20)} color="#1B7A49" />}
             title="Sign out"
             onPress={handleSignOut}
           />
-          <View className="h-px bg-gray-50 ml-16" />
+          <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           <MenuItem
-            icon={<Trash2 size={20} color="#E53935" />}
+            icon={<Trash2 size={scale(20)} color="#E53935" />}
             iconBgColor="bg-red-50"
             title="Delete account"
             titleStyle="text-red-500"
@@ -332,6 +334,7 @@ export default function SellerSettingsScreen() {
           />
         </View>
 
+        <View style={{ height: verticalScale(40) }} />
       </ScrollView>
     </SafeAreaView>
   );

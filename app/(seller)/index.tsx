@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, Image } from 'react-native';
+import { CheckCircle, QrCode, ShoppingBag, Star, Store, TrendingUp } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Store, TrendingUp, ShoppingBag, Star, QrCode, CheckCircle } from 'lucide-react-native';
 
-import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseLib';
+import { moderateScale, scale, verticalScale } from '@/lib/responsive';
 import { useAppStore } from '@/store/app-store';
+import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string; icon: any; color: string }) {
   return (
-    <View className="flex-1 bg-white rounded-3xl p-4 mx-1 border border-gray-100 shadow-sm items-center">
-      <View className="w-10 h-10 rounded-2xl items-center justify-center mb-2" style={{ backgroundColor: `${color}18` }}>
-        <Icon size={20} color={color} />
+    <View style={{ padding: scale(16), marginHorizontal: scale(4), borderRadius: scale(24) }} className="flex-1 bg-white border border-gray-100 shadow-sm items-center">
+      <View style={{ width: scale(40), height: scale(40), borderRadius: scale(16), marginBottom: verticalScale(8), backgroundColor: `${color}18` }} className="items-center justify-center">
+        <Icon size={scale(20)} color={color} />
       </View>
-      <Text className="text-2xl font-bold text-gray-900">{value}</Text>
-      <Text className="text-gray-400 text-xs mt-1 text-center">{label}</Text>
+      <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">{value}</Text>
+      <Text style={{ fontSize: moderateScale(11), marginTop: verticalScale(4) }} className="text-gray-400 text-center">{label}</Text>
     </View>
   );
 }
@@ -89,44 +90,44 @@ export default function SellerDashboard() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: scale(16), paddingTop: verticalScale(24) }} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
-        <View className="flex-row items-center mb-6">
-          <View className="w-12 h-12 bg-brandPrimary rounded-2xl items-center justify-center mr-3">
-            <Store size={24} color="white" />
+        <View style={{ marginBottom: verticalScale(24) }} className="flex-row items-center">
+          <View style={{ width: scale(48), height: scale(48), borderRadius: scale(16), marginRight: scale(12) }} className="bg-brandPrimary items-center justify-center">
+            <Store size={scale(24)} color="white" />
           </View>
           <View>
-            <Text className="text-gray-400 text-sm font-medium">Seller Portal</Text>
-            <Text className="text-2xl font-bold text-gray-900">Dashboard</Text>
+            <Text style={{ fontSize: moderateScale(13) }} className="text-gray-400 font-medium">Seller Portal</Text>
+            <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Dashboard</Text>
           </View>
         </View>
 
         {/* Welcome Banner */}
-        <View className="bg-brandPrimary rounded-3xl p-5 mb-6">
-          <Text className="text-white text-lg font-bold mb-1">Welcome back! 👋</Text>
-          <Text className="text-green-100 text-sm">Your store is active and accepting orders.</Text>
+        <View style={{ padding: scale(20), marginBottom: verticalScale(24), borderRadius: scale(24) }} className="bg-brandPrimary">
+          <Text style={{ fontSize: moderateScale(16), marginBottom: verticalScale(4) }} className="text-white font-bold">Welcome back! 👋</Text>
+          <Text style={{ fontSize: moderateScale(13) }} className="text-green-100">Your store is active and accepting orders.</Text>
         </View>
 
         {/* Stat Cards */}
-        <Text className="font-bold text-gray-400 text-xs tracking-wider mb-3 ml-1">OVERVIEW</Text>
-        <View className="flex-row mb-6">
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(12), marginLeft: scale(4), letterSpacing: 0.5 }} className="font-bold text-gray-400 tracking-wider">OVERVIEW</Text>
+        <View style={{ marginBottom: verticalScale(24) }} className="flex-row">
           <StatCard label="Active Listings" value={activeListingsCount.toString()} icon={ShoppingBag} color="#1B7A49" />
           <StatCard label="This Month" value="—" icon={TrendingUp} color="#F59E0B" />
           <StatCard label="Rating" value={averageRating} icon={Star} color="#8B5CF6" />
         </View>
 
         {/* Recent Activity */}
-        <Text className="font-bold text-gray-400 text-xs tracking-wider mb-3 ml-1">RECENT ACTIVITY</Text>
-        
+        <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(12), marginLeft: scale(4), letterSpacing: 0.5 }} className="font-bold text-gray-400 tracking-wider">RECENT ACTIVITY</Text>
+
         {orders.length === 0 ? (
-          <View className="bg-white rounded-3xl p-6 mb-6 border border-gray-100 shadow-sm items-center">
-            <ShoppingBag size={40} color="#D1FAE5" />
-            <Text className="text-gray-900 font-bold text-base mt-3">No recent orders</Text>
-            <Text className="text-gray-400 text-sm text-center mt-1">New orders from buyers will appear here.</Text>
+          <View style={{ padding: scale(24), marginBottom: verticalScale(24), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm items-center">
+            <ShoppingBag size={scale(40)} color="#D1FAE5" />
+            <Text style={{ fontSize: moderateScale(15), marginTop: verticalScale(12) }} className="text-gray-900 font-bold">No recent orders</Text>
+            <Text style={{ fontSize: moderateScale(13), marginTop: verticalScale(4) }} className="text-gray-400 text-center">New orders from buyers will appear here.</Text>
           </View>
         ) : (
-          <View className="mb-6">
+          <View style={{ marginBottom: verticalScale(24) }}>
             {orders.map((order) => {
               const item = order.itemData || {};
               const isOrdered = order.status === 'ordered';
@@ -139,24 +140,24 @@ export default function SellerDashboard() {
               const statusText = isCompleted ? 'Completed' : isCancelled ? 'Cancelled' : isReady ? 'Ready for pickup' : isOrdered ? 'Ordered' : 'Unknown';
 
               return (
-                <View key={order.id} className="bg-white rounded-[24px] border border-gray-100 p-4 shadow-sm mb-4">
-                  <View className="flex-row items-start mb-4">
-                    <View className="w-[68px] h-[68px] bg-gray-100 rounded-[16px] overflow-hidden mr-3">
+                <View key={order.id} style={{ padding: scale(16), marginBottom: verticalScale(16), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm">
+                  <View style={{ marginBottom: verticalScale(16) }} className="flex-row items-start">
+                    <View style={{ width: scale(68), height: scale(68), borderRadius: scale(16), marginRight: scale(12) }} className="bg-gray-100 overflow-hidden">
                       {item.image ? (
-                        <Image source={{ uri: item.image }} style={{ width: 68, height: 68 }} />
+                        <Image source={{ uri: item.image }} style={{ width: scale(68), height: scale(68) }} />
                       ) : (
                         <View className="flex-1 items-center justify-center">
-                          <ShoppingBag size={24} color="#9CA3AF" />
+                          <ShoppingBag size={scale(24)} color="#9CA3AF" />
                         </View>
                       )}
                     </View>
-                    <View className="flex-1 pt-1">
-                      <Text className="font-bold text-gray-900 text-[17px] mb-1">{item.title}</Text>
-                      <Text className="text-gray-500 text-[11px] mb-2" numberOfLines={2}>
+                    <View style={{ paddingTop: verticalScale(4) }} className="flex-1">
+                      <Text style={{ fontSize: moderateScale(17), marginBottom: verticalScale(4) }} className="font-bold text-gray-900">{item.title}</Text>
+                      <Text style={{ fontSize: moderateScale(10), marginBottom: verticalScale(8) }} className="text-gray-500" numberOfLines={2}>
                         Order #{order.id.substring(0, 8).toUpperCase()}
                       </Text>
-                      <View className={`${badgeBg} self-start px-2.5 py-1 rounded-full`}>
-                        <Text className={`${badgeTextCol} text-[10px] font-bold`}>{statusText}</Text>
+                      <View style={{ paddingHorizontal: scale(10), paddingVertical: verticalScale(4), borderRadius: scale(9999) }} className={`${badgeBg} self-start`}>
+                        <Text style={{ fontSize: moderateScale(10) }} className={`${badgeTextCol} font-bold`}>{statusText}</Text>
                       </View>
                     </View>
                   </View>
@@ -165,19 +166,21 @@ export default function SellerDashboard() {
                   {isOrdered && (
                     <Pressable
                       onPress={() => handleUpdateOrderStatus(order.id, 'ready')}
-                      className="bg-brandPrimary px-4 py-2.5 rounded-xl flex-row items-center justify-center flex-1 mr-2"
+                      style={{ paddingVertical: verticalScale(10), borderRadius: scale(12) }}
+                      className="bg-brandPrimary flex-row items-center justify-center w-full"
                     >
-                      <QrCode size={16} color="white" className="mr-1.5" />
-                      <Text className="text-white font-bold text-sm"> Mark as Ready for Pickup</Text>
+                      <QrCode size={scale(16)} color="white" style={{ marginRight: scale(6) }} />
+                      <Text style={{ fontSize: moderateScale(13) }} className="text-white font-bold">Mark as Ready for Pickup</Text>
                     </Pressable>
                   )}
                   {isReady && (
                     <Pressable
                       onPress={() => handleUpdateOrderStatus(order.id, 'completed')}
-                      className="bg-brandPrimary px-4 py-2.5 rounded-xl flex-row items-center justify-center flex-1 ml-2"
+                      style={{ paddingVertical: verticalScale(10), borderRadius: scale(12) }}
+                      className="bg-brandPrimary flex-row items-center justify-center w-full"
                     >
-                      <CheckCircle size={16} color="white" className="mr-1.5" />
-                      <Text className="text-white font-bold text-sm"> Mark as Completed</Text>
+                      <CheckCircle size={scale(16)} color="white" style={{ marginRight: scale(6) }} />
+                      <Text style={{ fontSize: moderateScale(13) }} className="text-white font-bold">Mark as Completed</Text>
                     </Pressable>
                   )}
                 </View>

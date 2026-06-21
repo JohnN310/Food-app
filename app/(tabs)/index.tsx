@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import MapView, { Callout, Circle, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -365,26 +366,33 @@ export default function HomeScreen() {
         {/* Header: Identity & Notifications */}
         <View className="flex-row justify-between items-start mb-6">
           <View className="flex-row items-center gap-3">
-            <View className="w-12 h-12 rounded-[16px] bg-[#F1F8F4] border border-[#E1F0E8] overflow-hidden justify-center items-center">
+            <View 
+              style={{ width: scale(48), height: scale(48), borderRadius: scale(16) }}
+              className="bg-[#F1F8F4] border border-[#E1F0E8] overflow-hidden justify-center items-center"
+            >
               <Image
                 source={require('../../assets/images/mascot_waving_1776538518453.png')}
-                style={{ width: 40, height: 40 }}
+                style={{ width: scale(40), height: scale(40) }}
                 resizeMode="contain"
               />
             </View>
             <View className="mt-1">
-              <Text className="text-gray-500 font-medium text-[13px]">Good afternoon 👋</Text>
-              <Text className="text-2xl font-extrabold text-gray-900 tracking-tight">Day of Taste</Text>
+              <Text style={{ fontSize: moderateScale(13) }} className="text-gray-500 font-medium">Good afternoon 👋</Text>
+              <Text style={{ fontSize: moderateScale(22) }} className="font-extrabold text-gray-900 tracking-tight">Day of Taste</Text>
             </View>
           </View>
           <Pressable
             onPress={() => router.push('/notifications')}
-            className="w-10 h-10 bg-white rounded-full items-center justify-center relative shadow-sm border border-gray-100 mt-1"
+            style={{ width: scale(40), height: scale(40) }}
+            className="bg-white rounded-full items-center justify-center relative shadow-sm border border-gray-100 mt-1"
           >
-            <Bell size={20} color="#374151" />
+            <Bell size={scale(20)} color="#374151" />
             {unreadMessagesCount > 0 && (
-              <View className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white items-center justify-center">
-                <Text className="text-[8px] text-white font-bold">{unreadMessagesCount}</Text>
+              <View 
+                style={{ width: scale(16), height: scale(16) }}
+                className="absolute -top-1 -right-1 bg-red-500 rounded-full border-2 border-white items-center justify-center"
+              >
+                <Text style={{ fontSize: moderateScale(10) }} className="text-white font-bold">{unreadMessagesCount}</Text>
               </View>
             )}
           </Pressable>
@@ -392,10 +400,14 @@ export default function HomeScreen() {
 
         {/* Search Bar */}
         <View className="mb-5">
-          <View className="flex-row items-center bg-white rounded-2xl px-5 py-3.5 shadow-sm border border-gray-100">
-            <Search size={20} color="#1B7A49" strokeWidth={2.5} />
+          <View 
+            style={{ paddingHorizontal: scale(20), paddingVertical: verticalScale(14) }}
+            className="flex-row items-center bg-white rounded-2xl shadow-sm border border-gray-100"
+          >
+            <Search size={scale(20)} color="#1B7A49" strokeWidth={2.5} />
             <TextInput
-              className="flex-1 ml-3 text-gray-900 text-[15px] font-medium"
+              style={{ fontSize: moderateScale(15) }}
+              className="flex-1 ml-3 text-gray-900 font-medium"
               placeholder="Search rescue items nearby..."
               placeholderTextColor="#9CA3AF"
               value={searchQuery}
@@ -404,7 +416,7 @@ export default function HomeScreen() {
             />
             <View className="h-6 w-[1px] bg-gray-100 mx-3" />
             <Pressable onPress={handleOpenMap}>
-              <MapPin size={20} color="#1B7A49" strokeWidth={2} />
+              <MapPin size={scale(20)} color="#1B7A49" strokeWidth={2} />
             </Pressable>
           </View>
         </View>
@@ -414,18 +426,21 @@ export default function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 20 }}
+            contentContainerStyle={{ paddingRight: scale(20) }}
             className="mb-5 overflow-visible"
           >
             <View className="flex-row gap-3">
               <Pressable
                 onPress={openSortFilterModal}
-                className="flex-row items-center px-4 py-2.5 rounded-[14px] bg-white border border-gray-200 shadow-sm"
+                style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(10), borderRadius: scale(14) }}
+                className="flex-row items-center bg-white border border-gray-200 shadow-sm"
               >
-                <SlidersHorizontal size={16} color="#374151" />
-                {/* <Text className="font-bold text-[13px] text-gray-700 ml-2">Sort & Filter</Text> */}
+                <SlidersHorizontal size={scale(16)} color="#374151" />
                 {(filterMerchantType.length > 0 || filterMinReview !== null || filterMaxPrice < 100 || filterExpiryDays !== null || sortBy !== 'Recommended') && (
-                  <View className="absolute top-1 right-1 w-2.5 h-2.5 bg-brandPrimary rounded-full border border-white" />
+                  <View 
+                    style={{ width: scale(10), height: scale(10) }}
+                    className="absolute top-1 right-1 bg-brandPrimary rounded-full border border-white" 
+                  />
                 )}
               </Pressable>
 
@@ -435,13 +450,14 @@ export default function HomeScreen() {
                   <Pressable
                     key={idx}
                     onPress={() => setActiveCategory(cat.label)}
-                    className={`flex-row items-center px-4 py-2.5 rounded-[14px] border shadow-sm ${isActive
+                    style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(10), borderRadius: scale(14) }}
+                    className={`flex-row items-center border shadow-sm ${isActive
                         ? 'bg-[#F1F8F4] border-[#1B7A49]/20'
                         : 'bg-white border-gray-100'
                       }`}
                   >
                     <Text className="text-sm mr-2">{cat.icon}</Text>
-                    <Text className={`font-bold text-[13px] ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>
+                    <Text style={{ fontSize: moderateScale(13) }} className={`font-bold ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>
                       {cat.label}
                     </Text>
                   </Pressable>
@@ -452,15 +468,15 @@ export default function HomeScreen() {
         )}
 
         {/* Impact Banner */}
-        <View className="bg-[#F1F8F4] rounded-[24px] p-5 mb-6 flex-row items-center border border-[#E1F0E8]">
-          <View className="w-[52px] h-[52px] bg-[#E1F0E8] rounded-full items-center justify-center mr-4 overflow-hidden relative">
-            <Text className="text-3xl relative top-0.5 right-0.5">🌍</Text>
-            <Text className="text-base absolute -top-1 -right-1">🌿</Text>
-            <Text className="text-sm absolute bottom-0 left-0">🌱</Text>
+        <View style={{ borderRadius: scale(24), padding: scale(20) }} className="bg-[#F1F8F4] mb-6 flex-row items-center border border-[#E1F0E8]">
+          <View style={{ width: scale(52), height: scale(52) }} className="bg-[#E1F0E8] rounded-full items-center justify-center mr-4 overflow-hidden relative">
+            <Text style={{ fontSize: moderateScale(28) }} className="relative top-0.5 right-0.5">🌍</Text>
+            <Text style={{ fontSize: moderateScale(16) }} className="absolute -top-1 -right-1">🌿</Text>
+            <Text style={{ fontSize: moderateScale(14) }} className="absolute bottom-0 left-0">🌱</Text>
           </View>
           <View className="flex-1">
-            <Text className="text-gray-900 font-bold text-[15px] mb-0.5">Today's Impact 🌿</Text>
-            <Text className="text-gray-600 text-xs">
+            <Text style={{ fontSize: moderateScale(15) }} className="text-gray-900 font-bold mb-0.5">Today's Impact 🌿</Text>
+            <Text style={{ fontSize: moderateScale(12) }} className="text-gray-600">
               {listings.length > 0
                 ? `${listings.length} items available for rescue right now!`
                 : "Be the first to rescue food in your area today!"}
@@ -470,11 +486,11 @@ export default function HomeScreen() {
 
         {/* Results List */}
         <View className="flex-row justify-between items-center mb-4 px-1">
-          <Text className="text-[20px] font-bold text-gray-900 tracking-tight">
+          <Text style={{ fontSize: moderateScale(20) }} className="font-bold text-gray-900 tracking-tight">
             {searchQuery ? 'Search Results' : 'Nearby Rescue Deals'}
           </Text>
           <Pressable onPress={() => Alert.alert('Navigation', 'See all deals.')}>
-            <Text className="text-brandPrimary font-semibold text-[13px]">See all</Text>
+            <Text style={{ fontSize: moderateScale(13) }} className="text-brandPrimary font-semibold">See all</Text>
           </Pressable>
         </View>
 
@@ -505,37 +521,38 @@ export default function HomeScreen() {
                   })
                 }
               })}
-              className={`bg-white rounded-[24px] border border-gray-100 p-4 mb-4 shadow-sm active:opacity-90 ${isOutOfStock ? 'opacity-60' : ''}`}
+              style={{ borderRadius: scale(24), padding: scale(16), marginBottom: verticalScale(16) }}
+              className={`bg-white border border-gray-100 shadow-sm active:opacity-90 ${isOutOfStock ? 'opacity-60' : ''}`}
             >
               {/* Header Row */}
-              <View className="flex-row items-start mb-4">
-                <View className="w-[68px] h-[68px] bg-gray-100 rounded-[16px] overflow-hidden mr-3">
+              <View style={{ marginBottom: verticalScale(16) }} className="flex-row items-start">
+                <View style={{ width: scale(68), height: scale(68), borderRadius: scale(16), marginRight: scale(12) }} className="bg-gray-100 overflow-hidden">
                   {item.image ? (
-                    <Image source={{ uri: item.image }} style={{ width: 68, height: 68 }} />
+                    <Image source={{ uri: item.image }} style={{ width: scale(68), height: scale(68) }} />
                   ) : (
                     <View className="flex-1 items-center justify-center bg-[#F1F8F4]">
-                      <ShoppingBag size={24} color="#1B7A49" />
+                      <ShoppingBag size={scale(24)} color="#1B7A49" />
                     </View>
                   )}
                   <View className="absolute bottom-0 left-0 right-0 bg-[#1B7A49]/90 items-center py-0.5">
-                    <Text className="text-white text-[9px] font-bold tracking-wider">{item.discount}</Text>
+                    <Text style={{ fontSize: moderateScale(10) }} className="text-white font-bold tracking-wider">{item.discount}</Text>
                   </View>
                 </View>
 
                 <View className="flex-1 pr-2 pt-1">
                   <View className="flex-row items-center mb-1">
-                    <Text className="font-bold text-gray-900 text-[17px] flex-1" numberOfLines={1}>{item.title}</Text>
+                    <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-gray-900 flex-1" numberOfLines={1}>{item.title}</Text>
                   </View>
-                  <Text className="text-gray-500 text-[11px] mb-1.5">{sellersMap[item.sellerId]?.storeName || item.store}</Text>
+                  <Text style={{ fontSize: moderateScale(11) }} className="text-gray-500 mb-1.5">{sellersMap[item.sellerId]?.storeName || item.store}</Text>
                   <View className="flex-row items-center flex-wrap">
                     <View className="flex-row items-center mr-3 mt-0.5">
-                      <Clock size={12} color="#6B7280" />
-                      <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{item.time || "Time not set"}</Text>
+                      <Clock size={scale(12)} color="#6B7280" />
+                      <Text style={{ fontSize: moderateScale(11) }} className="text-gray-500 ml-1.5 font-medium">{item.time || "Time not set"}</Text>
                     </View>
                     {computedDistance && (
                       <View className="flex-row items-center mt-0.5">
-                        <MapPin size={12} color="#6B7280" />
-                        <Text className="text-gray-500 text-[11px] ml-1.5 font-medium">{computedDistance}</Text>
+                        <MapPin size={scale(12)} color="#6B7280" />
+                        <Text style={{ fontSize: moderateScale(11) }} className="text-gray-500 ml-1.5 font-medium">{computedDistance}</Text>
                       </View>
                     )}
                   </View>
@@ -544,44 +561,45 @@ export default function HomeScreen() {
                 <View className="items-end pt-1">
                   <View className="flex-row items-center">
                     {isOutOfStock ? (
-                      <View className="bg-red-50 px-2 py-0.5 rounded border border-red-100 mr-2">
-                        <Text className="text-red-500 font-bold text-[10px]">Sold Out</Text>
+                      <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(2), marginRight: scale(8) }} className="bg-red-50 rounded border border-red-100">
+                        <Text style={{ fontSize: moderateScale(10) }} className="text-red-500 font-bold">Sold Out</Text>
                       </View>
                     ) : (item.quantity !== undefined && item.quantity <= 10) ? (
-                      <Text className="text-orange-600 font-bold text-[10px] mr-2">Only {item.quantity} left!</Text>
+                      <Text style={{ fontSize: moderateScale(10) }} className="text-orange-600 font-bold mr-2">Only {item.quantity} left!</Text>
                     ) : null}
                     <Pressable
                       onPress={(e) => { e.stopPropagation(); toggleSavedItem(item.id.toString()); }}
-                      className="p-1 mb-1 bg-gray-50 rounded-full border border-gray-100"
+                      style={{ padding: scale(4), marginBottom: verticalScale(4) }}
+                      className="bg-gray-50 rounded-full border border-gray-100"
                     >
-                      <Heart size={16} color={isSaved ? "#E53935" : "#9CA3AF"} fill={isSaved ? "#E53935" : "transparent"} />
+                      <Heart size={scale(16)} color={isSaved ? "#E53935" : "#9CA3AF"} fill={isSaved ? "#E53935" : "transparent"} />
                     </Pressable>
                   </View>
                   <View className="flex-row items-end gap-1 mt-1">
-                    <Text className="font-bold text-brandPrimary text-[17px]">{item.price}</Text>
+                    <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-brandPrimary">{item.price}</Text>
                   </View>
-                  <Text className="text-gray-400 line-through text-[10px] mt-0.5">{item.oldPrice}</Text>
+                  <Text style={{ fontSize: moderateScale(10) }} className="text-gray-400 line-through mt-0.5">{item.oldPrice}</Text>
                 </View>
               </View>
 
               {/* Inner Card Content Row */}
-              <View className="bg-[#FAFAF5] rounded-2xl p-3 flex-row items-center border border-gray-50">
+              <View style={{ borderRadius: scale(16), padding: scale(12) }} className="bg-[#FAFAF5] flex-row items-center border border-gray-50">
                 <View className="flex-1">
-                  <Text className="text-gray-500 text-[11px] leading-tight pr-4" numberOfLines={2}>
+                  <Text style={{ fontSize: moderateScale(11) }} className="text-gray-500 leading-tight pr-4" numberOfLines={2}>
                     {item.description || 'A delicious surprise bag containing assorted items and baked goods.'}
                   </Text>
                 </View>
                 {sellersMap[item.sellerId]?.averageRating && (
-                  <View className="flex-row items-center bg-white px-2 py-1 rounded-lg border border-gray-100 shadow-sm">
-                    <Text className="font-bold text-yellow-500 text-[12px]">⭐ {sellersMap[item.sellerId].averageRating}</Text>
+                  <View style={{ paddingHorizontal: scale(8), paddingVertical: verticalScale(4) }} className="flex-row items-center bg-white rounded-lg border border-gray-100 shadow-sm">
+                    <Text style={{ fontSize: moderateScale(12) }} className="font-bold text-yellow-500">⭐ {sellersMap[item.sellerId].averageRating}</Text>
                   </View>
                 )}
               </View>
             </Pressable>
           )
         }) : (
-          <View className="bg-white rounded-3xl p-10 items-center justify-center border border-gray-100">
-            <Text className="text-gray-500 font-medium text-center">
+          <View style={{ borderRadius: scale(24), padding: scale(40) }} className="bg-white items-center justify-center border border-gray-100">
+            <Text style={{ fontSize: moderateScale(14) }} className="text-gray-500 font-medium text-center">
               No deals match your search or category choice.
             </Text>
           </View>
@@ -590,13 +608,13 @@ export default function HomeScreen() {
         {/* Map Modal */}
         <Modal visible={isMapVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsMapVisible(false)}>
           <View className="flex-1 bg-[#FAFAF5]">
-            <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100 bg-white shadow-sm relative">
-              <View className="w-10 h-10" />
+            <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16) }} className="flex-row items-center justify-between border-b border-gray-100 bg-white shadow-sm relative">
+              <View style={{ width: scale(40), height: scale(40) }} />
               <View className="absolute left-0 right-0 items-center pointer-events-none">
-                <Text className="text-xl font-bold text-gray-900">Select Location</Text>
+                <Text style={{ fontSize: moderateScale(20) }} className="font-bold text-gray-900">Select Location</Text>
               </View>
-              <Pressable onPress={() => setIsMapVisible(false)} className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center z-10">
-                <X size={20} color="#374151" />
+              <Pressable onPress={() => setIsMapVisible(false)} style={{ width: scale(40), height: scale(40) }} className="bg-gray-100 rounded-full items-center justify-center z-10">
+                <X size={scale(20)} color="#374151" />
               </Pressable>
             </View>
             <MapView
@@ -625,7 +643,7 @@ export default function HomeScreen() {
                     description="Deals will be shown near here."
                     tracksViewChanges={false}
                   >
-                    <View className="w-6 h-6 bg-[#1B7A49] rounded-full border-2 border-white shadow-sm items-center justify-center" />
+                    <View style={{ width: scale(24), height: scale(24) }} className="bg-[#1B7A49] rounded-full border-2 border-white shadow-sm items-center justify-center" />
                   </Marker>
                 </>
               )}
@@ -639,8 +657,8 @@ export default function HomeScreen() {
                       coordinate={{ latitude: itemLat, longitude: itemLon }}
                       tracksViewChanges={false}
                     >
-                      <View className="w-8 h-8 rounded-full border-2 border-white shadow-sm items-center justify-center bg-[#E53935]">
-                        <Text className="text-white text-xs font-bold">🏪</Text>
+                      <View style={{ width: scale(32), height: scale(32) }} className="rounded-full border-2 border-white shadow-sm items-center justify-center bg-[#E53935]">
+                        <Text style={{ fontSize: moderateScale(12) }} className="text-white font-bold">🏪</Text>
                       </View>
                       <Callout onPress={() => {
                         setIsMapVisible(false);
@@ -655,10 +673,10 @@ export default function HomeScreen() {
                           }
                         });
                       }}>
-                        <View className="p-2 max-w-[200px]">
-                          <Text className="font-bold text-gray-900" numberOfLines={1}>{item.title}</Text>
-                          <Text className="text-[#1B7A49] font-bold mt-1">{item.price}</Text>
-                          <Text className="text-[10px] font-bold text-gray-400 tracking-wider mt-1 uppercase">Tap to view deal</Text>
+                        <View style={{ padding: scale(8), maxWidth: scale(200) }}>
+                          <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-900" numberOfLines={1}>{item.title}</Text>
+                          <Text style={{ fontSize: moderateScale(14) }} className="text-[#1B7A49] font-bold mt-1">{item.price}</Text>
+                          <Text style={{ fontSize: moderateScale(10) }} className="font-bold text-gray-400 tracking-wider mt-1 uppercase">Tap to view deal</Text>
                         </View>
                       </Callout>
                     </Marker>
@@ -667,11 +685,11 @@ export default function HomeScreen() {
                 return null;
               })}
             </MapView>
-            <View className="p-5 bg-white border-t border-gray-100 shadow-sm pb-10">
+            <View style={{ padding: scale(20), paddingBottom: verticalScale(40) }} className="bg-white border-t border-gray-100 shadow-sm">
               <View className="mb-4">
                 <View className="flex-row justify-between items-center mb-2">
-                  <Text className="font-bold text-gray-700">Search Radius</Text>
-                  <Text className="text-[#1B7A49] font-bold">{searchRadius} miles</Text>
+                  <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-700">Search Radius</Text>
+                  <Text style={{ fontSize: moderateScale(14) }} className="text-[#1B7A49] font-bold">{searchRadius} miles</Text>
                 </View>
                 <Slider
                   style={{ width: '100%', height: 40 }}
@@ -687,9 +705,10 @@ export default function HomeScreen() {
               </View>
               <Pressable
                 onPress={handleSaveLocation}
-                className="bg-[#1B7A49] py-4 rounded-full items-center active:opacity-90 shadow-sm"
+                style={{ paddingVertical: verticalScale(16) }}
+                className="bg-[#1B7A49] rounded-full items-center active:opacity-90 shadow-sm"
               >
-                <Text className="text-white font-bold text-lg tracking-wide">Save Location</Text>
+                <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold tracking-wide">Save Location</Text>
               </Pressable>
             </View>
           </View>
@@ -702,33 +721,34 @@ export default function HomeScreen() {
         <View className="flex-1 justify-end">
           <Pressable className="absolute top-0 bottom-0 left-0 right-0 bg-black/40" onPress={closeSortFilterModal} />
           <Animated.View
-            style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%' }}
-            className="bg-white rounded-t-[32px] pt-6 px-6 pb-10 shadow-2xl"
+            style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%', borderTopLeftRadius: scale(32), borderTopRightRadius: scale(32), paddingTop: verticalScale(24), paddingHorizontal: scale(24), paddingBottom: verticalScale(40) }}
+            className="bg-white shadow-2xl"
           >
             <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-2xl font-bold text-gray-900">Sort & Filter</Text>
-              <Pressable onPress={closeSortFilterModal} className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center">
-                <X size={20} color="#374151" />
+              <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Sort & Filter</Text>
+              <Pressable onPress={closeSortFilterModal} style={{ width: scale(40), height: scale(40) }} className="bg-gray-100 rounded-full items-center justify-center">
+                <X size={scale(20)} color="#374151" />
               </Pressable>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} className="mb-6">
               {/* Sort By */}
-              <Text className="font-bold text-gray-900 text-lg mb-3">Sort By</Text>
+              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Sort By</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-6 overflow-visible">
                 {['Recommended', 'Distance', 'Price (Low to High)', 'Price (High to Low)', 'Quantity Available'].map(opt => (
                   <Pressable
                     key={opt}
                     onPress={() => setSortBy(opt)}
-                    className={`mr-3 px-4 py-2.5 rounded-full border ${sortBy === opt ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-200'}`}
+                    style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(10) }}
+                    className={`mr-3 rounded-full border ${sortBy === opt ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-200'}`}
                   >
-                    <Text className={`font-medium ${sortBy === opt ? 'text-white' : 'text-gray-700'}`}>{opt}</Text>
+                    <Text style={{ fontSize: moderateScale(14) }} className={`font-medium ${sortBy === opt ? 'text-white' : 'text-gray-700'}`}>{opt}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
 
               {/* Merchant Type */}
-              <Text className="font-bold text-gray-900 text-lg mb-3">Merchant Type</Text>
+              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Merchant Type</Text>
               <View className="flex-row flex-wrap gap-2 mb-6">
                 {['Restaurant', 'Café', 'Bakery', 'Beverage Shop', 'Food Stall', 'Grocery / Supermarket', 'Hotel / Catering', 'Other'].map(type => {
                   const isActive = filterMerchantType.includes(type);
@@ -742,16 +762,17 @@ export default function HomeScreen() {
                           setFilterMerchantType(prev => [...prev, type]);
                         }
                       }}
-                      className={`px-4 py-2 rounded-xl border ${isActive ? 'bg-brandPrimary-soft border-brandPrimary/30' : 'bg-white border-gray-200'}`}
+                      style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8), borderRadius: scale(12) }}
+                      className={`border ${isActive ? 'bg-brandPrimary-soft border-brandPrimary/30' : 'bg-white border-gray-200'}`}
                     >
-                      <Text className={`font-medium text-sm ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>{type}</Text>
+                      <Text style={{ fontSize: moderateScale(14) }} className={`font-medium ${isActive ? 'text-brandPrimary' : 'text-gray-600'}`}>{type}</Text>
                     </Pressable>
                   );
                 })}
               </View>
 
               {/* Review Score */}
-              <Text className="font-bold text-gray-900 text-lg mb-3">Customer Review</Text>
+              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Customer Review</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-6 overflow-visible">
                 {[
                   { label: 'Any', val: null },
@@ -762,9 +783,10 @@ export default function HomeScreen() {
                   <Pressable
                     key={opt.label}
                     onPress={() => setFilterMinReview(opt.val)}
-                    className={`mr-3 px-4 py-2 rounded-full border ${filterMinReview === opt.val ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-200'}`}
+                    style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(8) }}
+                    className={`mr-3 rounded-full border ${filterMinReview === opt.val ? 'bg-brandPrimary border-brandPrimary' : 'bg-white border-gray-200'}`}
                   >
-                    <Text className={`font-medium ${filterMinReview === opt.val ? 'text-white' : 'text-gray-700'}`}>{opt.label}</Text>
+                    <Text style={{ fontSize: moderateScale(14) }} className={`font-medium ${filterMinReview === opt.val ? 'text-white' : 'text-gray-700'}`}>{opt.label}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
@@ -772,8 +794,8 @@ export default function HomeScreen() {
               {/* Price Range */}
               <View className="mb-6">
                 <View className="flex-row justify-between items-end mb-2">
-                  <Text className="font-bold text-gray-900 text-lg">Max Price</Text>
-                  <Text className="text-brandPrimary font-bold text-base">
+                  <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Max Price</Text>
+                  <Text style={{ fontSize: moderateScale(16) }} className="text-brandPrimary font-bold">
                     {filterMaxPrice === 100 ? 'Any Price' : `Under $${filterMaxPrice}`}
                   </Text>
                 </View>
@@ -791,31 +813,33 @@ export default function HomeScreen() {
               </View>
 
               {/* Expiry Limit */}
-              <Text className="font-bold text-gray-900 text-lg mb-3">Expires within</Text>
-              <View className="flex-row items-center bg-gray-50 rounded-2xl border border-gray-100 mb-4 px-4 py-3 justify-between">
-                <Text className="text-gray-700 font-medium">Days from today</Text>
+              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Expires within</Text>
+              <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), borderRadius: scale(16) }} className="flex-row items-center bg-gray-50 border border-gray-100 mb-4 justify-between">
+                <Text style={{ fontSize: moderateScale(14) }} className="text-gray-700 font-medium">Days from today</Text>
                 <View className="flex-row items-center">
                   <Pressable
                     onPress={() => setFilterExpiryDays(prev => prev === null ? null : (prev === 0 ? null : prev - 1))}
-                    className="w-10 h-10 bg-white border border-gray-200 rounded-full items-center justify-center"
+                    style={{ width: scale(40), height: scale(40) }}
+                    className="bg-white border border-gray-200 rounded-full items-center justify-center"
                   >
-                    <Text className="text-gray-600 font-bold text-xl">-</Text>
+                    <Text style={{ fontSize: moderateScale(20) }} className="text-gray-600 font-bold">-</Text>
                   </Pressable>
-                  <Text className="w-12 text-center font-bold text-gray-900 text-lg">
+                  <Text style={{ width: scale(48), fontSize: moderateScale(18) }} className="text-center font-bold text-gray-900">
                     {filterExpiryDays === null ? 'Any' : filterExpiryDays}
                   </Text>
                   <Pressable
                     onPress={() => setFilterExpiryDays(prev => prev === null ? 0 : prev + 1)}
-                    className="w-10 h-10 bg-brandPrimary rounded-full items-center justify-center"
+                    style={{ width: scale(40), height: scale(40) }}
+                    className="bg-brandPrimary rounded-full items-center justify-center"
                   >
-                    <Text className="text-white font-bold text-xl">+</Text>
+                    <Text style={{ fontSize: moderateScale(20) }} className="text-white font-bold">+</Text>
                   </Pressable>
                 </View>
               </View>
             </ScrollView>
 
             {/* Footer Buttons */}
-            <View className="flex-row gap-4 border-t border-gray-100 pt-4">
+            <View style={{ paddingTop: verticalScale(16) }} className="flex-row gap-4 border-t border-gray-100">
               <Pressable
                 onPress={() => {
                   setSortBy('Recommended');
@@ -824,15 +848,17 @@ export default function HomeScreen() {
                   setFilterMaxPrice(100);
                   setFilterExpiryDays(null);
                 }}
-                className="flex-1 py-4 items-center justify-center rounded-full bg-gray-100"
+                style={{ paddingVertical: verticalScale(16) }}
+                className="flex-1 items-center justify-center rounded-full bg-gray-100"
               >
-                <Text className="font-bold text-gray-700">Clear All</Text>
+                <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-700">Clear All</Text>
               </Pressable>
               <Pressable
                 onPress={closeSortFilterModal}
-                className="flex-[2] py-4 items-center justify-center rounded-full bg-brandPrimary shadow-sm shadow-brandPrimary/30"
+                style={{ paddingVertical: verticalScale(16) }}
+                className="flex-[2] items-center justify-center rounded-full bg-brandPrimary shadow-sm shadow-brandPrimary/30"
               >
-                <Text className="font-bold text-white text-lg">Apply</Text>
+                <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-white">Apply</Text>
               </Pressable>
             </View>
           </Animated.View>
