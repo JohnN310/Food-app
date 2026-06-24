@@ -72,7 +72,13 @@ function RootLayoutNav() {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.role) setRole(data.role);
+            if (data.role) {
+              setRole(data.role);
+            } else {
+              setRole('buyer'); // Default legacy users to buyer
+            }
+          } else {
+             setRole('buyer'); // Default if no doc
           }
         } catch (e: any) {
           // Silently ignore offline errors to prevent Expo red screens
@@ -175,14 +181,19 @@ function RootLayoutNav() {
     if (!user && !inAuthGroup) {
       // Not logged in — send to login
       router.replace('/(auth)/login');
-    } else if (user && inAuthGroup) {
-      // Just logged in — ONLY route once the role has been synced from Firestore
+    } else if (user) {
+      // Wait for role to be fetched from Firestore before routing
+      if (!role) return;
+
       if (role === 'seller') {
-        router.replace('/(seller)');
+        if (inAuthGroup || inTabsGroup) {
+          router.replace('/(seller)');
+        }
       } else if (role === 'buyer') {
-        router.replace('/(tabs)');
+        if (inAuthGroup || inSellerGroup) {
+          router.replace('/(tabs)');
+        }
       }
-      // If role is still null, we wait for the onAuthStateChanged fetch to finish
     }
   }, [user, isAuthInitialized, segments, role]);
 
