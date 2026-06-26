@@ -1,11 +1,11 @@
 import AddressAutocomplete from '@/components/AddressAutocomplete';
 import { auth, db } from '@/lib/firebaseLib';
+import { moderateScale, scale, verticalScale } from '@/lib/responsive';
 import { useAppStore } from '@/store/app-store';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import {
-  ArrowLeftRight, Bell,
   ChevronRight,
   CreditCard,
   HelpCircle,
@@ -22,7 +22,6 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { scale, verticalScale, moderateScale } from '@/lib/responsive';
 
 const { height } = Dimensions.get('window');
 
@@ -281,12 +280,12 @@ export default function SellerSettingsScreen() {
             onPress={() => router.push('/profile/payment-methods' as any)}
           />
           <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
-          <MenuItem
+          {/* <MenuItem
             icon={<Bell size={scale(20)} color="#1B7A49" />}
             title="Notifications"
             subtitle="Order alerts, promotions & news"
             onPress={() => router.push('/profile/settings' as any)}
-          />
+          /> */}
         </View>
 
         {/* Help & Policies */}
@@ -296,21 +295,21 @@ export default function SellerSettingsScreen() {
             icon={<HelpCircle size={scale(20)} color="#1B7A49" />}
             title="Seller support"
             subtitle="Get help with orders and listings"
-            onPress={() => router.push('/profile/support' as any)}
+            onPress={() => router.push('/chat/support-seller')}
           />
           <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           <MenuItem
             icon={<Shield size={scale(20)} color="#1B7A49" />}
             title="Policies & terms"
             subtitle="Seller agreement, data & privacy"
-            onPress={() => router.push('/profile/policies' as any)}
+            onPress={() => router.push('/(seller)/profile/policies' as any)}
           />
           <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           <MenuItem
             icon={<Settings size={scale(20)} color="#1B7A49" />}
             title="App preferences"
             subtitle="Language, display & more"
-            onPress={() => router.push('/profile/settings' as any)}
+            onPress={() => router.push('/(seller)/profile/settings')}
           />
         </View>
 

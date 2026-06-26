@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { Home, Search, Map, ShoppingBag, User } from 'lucide-react-native';
 import { View, Platform } from 'react-native';
 

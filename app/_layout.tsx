@@ -237,6 +237,22 @@ function RootLayoutNav() {
           }}
         />
 
+        <Stack.Screen
+          name="chat/support-buyer"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right'
+          }}
+        />
+
+        <Stack.Screen
+          name="chat/support-seller"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right'
+          }}
+        />
+
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>

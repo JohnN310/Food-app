@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { LayoutDashboard, Package, Settings, ShoppingBag } from 'lucide-react-native';
 import { View, Platform, Text } from 'react-native';
 import { useAppStore } from '@/store/app-store';
@@ -94,7 +94,7 @@ export default function SellerLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="profile"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, focused }) => <TabBarIcon Icon={Settings} color={color} focused={focused} />,

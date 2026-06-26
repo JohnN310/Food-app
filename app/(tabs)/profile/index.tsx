@@ -220,7 +220,7 @@ export default function ProfileScreen() {
         <View style={{ padding: scale(20), marginBottom: verticalScale(20), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm flex-row items-center active:opacity-90">
           <View style={{ width: scale(60), height: scale(60), borderRadius: scale(16) }} className="bg-[#FFF4E5] items-center justify-center border border-[#FFE4C4] overflow-hidden">
             <Image
-              source={require('../../assets/images/mascot_waving_1776538518453.png')}
+              source={require('../../../assets/images/mascot_waving_1776538518453.png')}
               style={{ width: scale(44), height: scale(44) }}
               resizeMode="contain"
             />
@@ -268,8 +268,12 @@ export default function ProfileScreen() {
         {/* Help & Policies */}
         <Text style={{ fontSize: moderateScale(11), marginBottom: verticalScale(8), marginLeft: scale(8) }} className="font-bold text-gray-400 tracking-wider">HELP & POLICIES</Text>
         <View style={{ marginBottom: verticalScale(24), borderRadius: scale(24) }} className="bg-white border border-gray-100 shadow-sm overflow-hidden">
-          <MenuItem icon={<HelpCircle size={scale(18)} color="#1B7A49" />} title="Customer support" subtitle="AI assistant first, human if needed" onPress={() => router.push('/profile/support')} />
-          <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
+          <MenuItem
+            icon={<HelpCircle size={scale(20)} color="#1B7A49" />}
+            title="Customer support"
+            subtitle="AI assistant first, human if needed"
+            onPress={() => router.push('/chat/support-buyer')}
+          /><View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
           <MenuItem icon={<Shield size={scale(18)} color="#1B7A49" />} title="Policies, terms & privacy" subtitle="Permissions, data, AI use" onPress={() => router.push('/profile/policies')} />
           <View style={{ height: 1, marginLeft: scale(68) }} className="bg-gray-50" />
           <MenuItem icon={<Settings size={scale(18)} color="#1B7A49" />} title="Settings" subtitle="Language, notifications, app preferences" onPress={() => router.push('/profile/settings')} />
