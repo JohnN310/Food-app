@@ -5,7 +5,7 @@ import Slider from '@react-native-community/slider';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
-import { Bell, Clock, Heart, MapPin, Search, ShoppingBag, SlidersHorizontal, X } from 'lucide-react-native';
+import { Bell, Clock, Heart, MapPin, Search, ShoppingBag, SlidersHorizontal, X, Filter, ArrowDownUp, Store, Star, DollarSign, Check } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import MapView, { Callout, Circle, Marker } from 'react-native-maps';
@@ -608,13 +608,18 @@ export default function HomeScreen() {
         {/* Map Modal */}
         <Modal visible={isMapVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsMapVisible(false)}>
           <View className="flex-1 bg-[#FAFAF5]">
-            <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(16) }} className="flex-row items-center justify-between border-b border-gray-100 bg-white shadow-sm relative">
-              <View style={{ width: scale(40), height: scale(40) }} />
-              <View className="absolute left-0 right-0 items-center pointer-events-none">
-                <Text style={{ fontSize: moderateScale(20) }} className="font-bold text-gray-900">Select Location</Text>
+            <View style={{ paddingHorizontal: scale(20), paddingTop: verticalScale(16), paddingBottom: verticalScale(16) }} className="flex-row items-start justify-between border-b border-gray-100 bg-white shadow-sm">
+              <View className="flex-row items-center flex-1 pr-4">
+                <View style={{ width: scale(40), height: scale(40), borderRadius: scale(12) }} className="bg-[#F0FDF4] items-center justify-center mr-3">
+                  <MapPin size={scale(20)} color="#166534" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Select Location</Text>
+                  <Text style={{ fontSize: moderateScale(12), marginTop: verticalScale(2) }} className="text-gray-500">Find deals near you</Text>
+                </View>
               </View>
-              <Pressable onPress={() => setIsMapVisible(false)} style={{ width: scale(40), height: scale(40) }} className="bg-gray-100 rounded-full items-center justify-center z-10">
-                <X size={scale(20)} color="#374151" />
+              <Pressable onPress={() => setIsMapVisible(false)} style={{ width: scale(36), height: scale(36) }} className="bg-gray-100 rounded-full items-center justify-center z-10">
+                <X size={scale(18)} color="#4B5563" />
               </Pressable>
             </View>
             <MapView
@@ -724,16 +729,27 @@ export default function HomeScreen() {
             style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%', borderTopLeftRadius: scale(32), borderTopRightRadius: scale(32), paddingTop: verticalScale(24), paddingHorizontal: scale(24), paddingBottom: verticalScale(40) }}
             className="bg-white shadow-2xl"
           >
-            <View className="flex-row justify-between items-center mb-6">
-              <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Sort & Filter</Text>
-              <Pressable onPress={closeSortFilterModal} style={{ width: scale(40), height: scale(40) }} className="bg-gray-100 rounded-full items-center justify-center">
-                <X size={scale(20)} color="#374151" />
+            <View className="flex-row justify-between items-start mb-6">
+              <View className="flex-row items-center flex-1 pr-4">
+                <View style={{ width: scale(40), height: scale(40), borderRadius: scale(12) }} className="bg-[#F0FDF4] items-center justify-center mr-3">
+                  <Filter size={scale(20)} color="#166534" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Sort & Filter</Text>
+                  <Text style={{ fontSize: moderateScale(12), marginTop: verticalScale(2) }} className="text-gray-500">Find exactly what you're looking for</Text>
+                </View>
+              </View>
+              <Pressable onPress={closeSortFilterModal} style={{ width: scale(36), height: scale(36) }} className="bg-gray-100 rounded-full items-center justify-center">
+                <X size={scale(18)} color="#4B5563" />
               </Pressable>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} className="mb-6">
               {/* Sort By */}
-              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Sort By</Text>
+              <View className="flex-row items-center mb-3">
+                <ArrowDownUp size={scale(18)} color="#166534" style={{ marginRight: scale(8) }} />
+                <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Sort By</Text>
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-6 overflow-visible">
                 {['Recommended', 'Distance', 'Price (Low to High)', 'Price (High to Low)', 'Quantity Available'].map(opt => (
                   <Pressable
@@ -748,7 +764,10 @@ export default function HomeScreen() {
               </ScrollView>
 
               {/* Merchant Type */}
-              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Merchant Type</Text>
+              <View className="flex-row items-center mt-2 mb-3">
+                <Store size={scale(18)} color="#166534" style={{ marginRight: scale(8) }} />
+                <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Merchant Type</Text>
+              </View>
               <View className="flex-row flex-wrap gap-2 mb-6">
                 {['Restaurant', 'Café', 'Bakery', 'Beverage Shop', 'Food Stall', 'Grocery / Supermarket', 'Hotel / Catering', 'Other'].map(type => {
                   const isActive = filterMerchantType.includes(type);
@@ -772,7 +791,10 @@ export default function HomeScreen() {
               </View>
 
               {/* Review Score */}
-              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Customer Review</Text>
+              <View className="flex-row items-center mt-2 mb-3">
+                <Star size={scale(18)} color="#166534" style={{ marginRight: scale(8) }} />
+                <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Customer Review</Text>
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-6 overflow-visible">
                 {[
                   { label: 'Any', val: null },
@@ -792,9 +814,12 @@ export default function HomeScreen() {
               </ScrollView>
 
               {/* Price Range */}
-              <View className="mb-6">
+              <View className="mb-6 mt-2">
                 <View className="flex-row justify-between items-end mb-2">
-                  <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Max Price</Text>
+                  <View className="flex-row items-center">
+                    <DollarSign size={scale(18)} color="#166534" style={{ marginRight: scale(8) }} />
+                    <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Max Price</Text>
+                  </View>
                   <Text style={{ fontSize: moderateScale(16) }} className="text-brandPrimary font-bold">
                     {filterMaxPrice === 100 ? 'Any Price' : `Under $${filterMaxPrice}`}
                   </Text>
@@ -813,7 +838,10 @@ export default function HomeScreen() {
               </View>
 
               {/* Expiry Limit */}
-              <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900 mb-3">Expires within</Text>
+              <View className="flex-row items-center mt-2 mb-3">
+                <Clock size={scale(18)} color="#166534" style={{ marginRight: scale(8) }} />
+                <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900">Expires within</Text>
+              </View>
               <View style={{ paddingHorizontal: scale(16), paddingVertical: verticalScale(12), borderRadius: scale(16) }} className="flex-row items-center bg-gray-50 border border-gray-100 mb-4 justify-between">
                 <Text style={{ fontSize: moderateScale(14) }} className="text-gray-700 font-medium">Days from today</Text>
                 <View className="flex-row items-center">
@@ -848,17 +876,23 @@ export default function HomeScreen() {
                   setFilterMaxPrice(100);
                   setFilterExpiryDays(null);
                 }}
-                style={{ paddingVertical: verticalScale(16) }}
-                className="flex-1 items-center justify-center rounded-full bg-gray-100"
+                style={{ paddingVertical: verticalScale(14), borderRadius: scale(16) }}
+                className="flex-1 bg-gray-100 items-center justify-center border border-gray-200"
               >
-                <Text style={{ fontSize: moderateScale(14) }} className="font-bold text-gray-700">Clear All</Text>
+                <View className="flex-row items-center justify-center">
+                  <X size={scale(18)} color="#374151" style={{ marginRight: scale(6) }} />
+                  <Text style={{ fontSize: moderateScale(16) }} className="text-gray-700 font-bold">Reset</Text>
+                </View>
               </Pressable>
               <Pressable
                 onPress={closeSortFilterModal}
-                style={{ paddingVertical: verticalScale(16) }}
-                className="flex-[2] items-center justify-center rounded-full bg-brandPrimary shadow-sm shadow-brandPrimary/30"
+                style={{ paddingVertical: verticalScale(14), borderRadius: scale(16) }}
+                className="flex-1 bg-brandPrimary items-center justify-center shadow-sm"
               >
-                <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-white">Apply</Text>
+                <View className="flex-row items-center justify-center">
+                  <Check size={scale(18)} color="#FFFFFF" style={{ marginRight: scale(6) }} />
+                  <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Apply</Text>
+                </View>
               </Pressable>
             </View>
           </Animated.View>

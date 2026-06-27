@@ -42,3 +42,7 @@ yarn-error.*
 
 app_description.md
 personal.md
+
+.env
+
+functions\.env

@@ -186,10 +186,18 @@ export default function SellerSettingsScreen() {
               style={{ transform: [{ translateY: slideAnim }], maxHeight: '90%', paddingTop: verticalScale(16), paddingBottom: verticalScale(40), borderTopLeftRadius: scale(32), borderTopRightRadius: scale(32) }}
               className="bg-background shadow-2xl"
             >
-              <View style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(16), paddingBottom: verticalScale(16), marginBottom: verticalScale(16) }} className="flex-row items-center justify-between border-b border-gray-100">
-                <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Edit Profile</Text>
-                <Pressable onPress={closeEditModal} style={{ width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-gray-100 items-center justify-center">
-                  <X size={scale(20)} color="#374151" />
+              <View style={{ paddingHorizontal: scale(24), paddingTop: verticalScale(16), paddingBottom: verticalScale(16), marginBottom: verticalScale(16) }} className="flex-row items-start justify-between border-b border-gray-100">
+                <View className="flex-row items-center flex-1 pr-4">
+                  <View style={{ width: scale(40), height: scale(40), borderRadius: scale(12) }} className="bg-[#F0FDF4] items-center justify-center mr-3">
+                    <Store size={scale(20)} color="#166534" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: moderateScale(22) }} className="font-bold text-gray-900">Edit Profile</Text>
+                    <Text style={{ fontSize: moderateScale(12), marginTop: verticalScale(2) }} className="text-gray-500">Update your store details</Text>
+                  </View>
+                </View>
+                <Pressable onPress={closeEditModal} style={{ width: scale(36), height: scale(36) }} className="bg-gray-100 rounded-full items-center justify-center">
+                  <X size={scale(18)} color="#4B5563" />
                 </Pressable>
               </View>
               <ScrollView style={{ paddingHorizontal: scale(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">

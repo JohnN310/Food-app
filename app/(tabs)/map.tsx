@@ -432,19 +432,27 @@ export default function MapScreen() {
             <View style={{ paddingTop: verticalScale(16), paddingBottom: verticalScale(8) }} className="w-full">
               <View style={{ width: scale(48), height: verticalScale(6) }} className="bg-gray-300 rounded-full self-center" />
             </View>
-            <View style={{ paddingHorizontal: scale(20), paddingBottom: verticalScale(12) }} className="flex-row justify-between items-center pointer-events-auto">
-              <Text style={{ fontSize: moderateScale(18), flex: 1, paddingRight: scale(10) }} className="font-bold text-gray-900" numberOfLines={1}>
-                {visibleListings.length} {visibleListings.length === 1 ? 'deal' : 'deals'} {selectedSellerId ? `from ${sellersList.find(s => s.id === selectedSellerId)?.storeName || 'Store'}` : 'in this area'}
-              </Text>
+            <View style={{ paddingHorizontal: scale(20), paddingBottom: verticalScale(12) }} className="flex-row justify-between items-start pointer-events-auto">
+              <View className="flex-row items-center flex-1 pr-4">
+                <View style={{ width: scale(40), height: scale(40), borderRadius: scale(12) }} className="bg-[#F0FDF4] items-center justify-center mr-3">
+                  <ShoppingBag size={scale(20)} color="#166534" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: moderateScale(18) }} className="font-bold text-gray-900" numberOfLines={1}>
+                    {visibleListings.length} {visibleListings.length === 1 ? 'deal' : 'deals'} {selectedSellerId ? `from ${sellersList.find(s => s.id === selectedSellerId)?.storeName || 'Store'}` : 'in this area'}
+                  </Text>
+                  <Text style={{ fontSize: moderateScale(12), marginTop: verticalScale(2) }} className="text-gray-500">Tap a deal for more details</Text>
+                </View>
+              </View>
               <Pressable 
                 onPress={() => {
                   setIsDismissed(true);
                   setSelectedSellerId(null);
                 }}
-                style={{ padding: scale(6) }}
-                className="bg-gray-100 rounded-full"
+                style={{ width: scale(36), height: scale(36) }}
+                className="bg-gray-100 rounded-full items-center justify-center"
               >
-                <X size={scale(18)} color="#6B7280" />
+                <X size={scale(18)} color="#4B5563" />
               </Pressable>
             </View>
           </View>

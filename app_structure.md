@@ -88,64 +88,59 @@ Food-app/
 │   │   └── forgot-password.tsx   # Password reset with silent success (prevents email enumeration)
 │   │
 │   ├── (tabs)/                   # BUYER TAB GROUP — Bottom tab bar for buyers
-│   │   ├── _layout.tsx           # 4-tab layout: Home, Map, Saved, Profile. (Explore tab is commented out)
+│   │   ├── _layout.tsx           # 4-tab layout: Home, Map, Orders, Profile
 │   │   ├── index.tsx             # HOME: Dynamic categories + Impact Banner + listings from Firestore onSnapshot
-│   │   ├── map.tsx               # Map view with react-native-maps (markers not yet connected to listings)
-│   │   ├── saved.tsx             # Wishlist screen synced via Zustand savedItems array
-│   │   └── profile.tsx           # Account hub with "Switch to Seller Mode" (writes role to Firestore + redirects)
+│   │   ├── map.tsx               # Map view with react-native-maps
+│   │   ├── orders.tsx            # Orders list tracking for buyer
+│   │   └── profile/              # Account hub
+│   │       ├── index.tsx         # Impact dashboard
+│   │       ├── policies.tsx      # Policies
+│   │       ├── settings.tsx      # Settings & role switch
+│   │       └── _layout.tsx       
 │   │
 │   ├── (seller)/                 # SELLER TAB GROUP — Bottom tab bar for sellers
-│   │   ├── _layout.tsx           # 3-tab layout: Dashboard, Inventory, Settings
-│   │   ├── index.tsx             # Dashboard with seller performance stats (placeholder data)
+│   │   ├── _layout.tsx           # 4-tab layout: Dashboard, Inventory, Orders, Settings
+│   │   ├── index.tsx             # Dashboard with seller performance stats
 │   │   ├── inventory.tsx         # FULL CRUD: Create/Edit listings with animated modal, real-time Firestore sync
-│   │   └── settings.tsx          # Seller profile + "Switch to Buyer Mode" (writes role to Firestore + redirects)
+│   │   ├── orders.tsx            # Orders management for seller
+│   │   └── profile/              # Settings & Profile folder
+│   │       ├── index.tsx         
+│   │       ├── policies.tsx      
+│   │       ├── settings.tsx      # Switch to Buyer Mode
+│   │       └── _layout.tsx       
 │   │
-│   ├── item/
+│   ├── chat/                     # CHAT SYSTEM
+│   │   ├── support-buyer.tsx     
+│   │   ├── support-seller.tsx    
+│   │   └── [orderId].tsx         # Order specific chat
+│   │
+│   ├── listing/
 │   │   └── [id].tsx              # ITEM DETAIL: Fetches single listing from Firestore. Hero image, pricing, Reserve Now.
 │   │
+│   ├── order/
+│   │   └── [id].tsx              # ORDER DETAIL: Real-time tracking of order status
+│   │
 │   └── profile/
-│       └── [id].tsx              # Dynamic catch-all for profile sub-pages (currently shows "Under Construction")
+│       └── [id].tsx              # Dynamic catch-all for profile sub-pages
 │
 ├── store/                        # Global state management
 │   ├── app-store.ts              # Zustand store (see Section 5 for full schema)
 │   └── mockData.ts               # Legacy mock data types. MOCK_DEALS is now an empty array [].
-│                                 #   ⚠️ Still imported by search.tsx — needs migration to Firestore.
 │
 ├── lib/                          # Shared utilities and configuration
-│   ├── firebaseLib.ts            # Firebase initialization with AsyncStorage persistence (try/catch for hot-reload)
-│   ├── constants.ts              # CATEGORY_ICONS map: { 'Bakery': '🍞', 'Produce': '🥬', ... }
-│   └── utils.ts                  # cn() utility for conditional class merging (clsx + tailwind-merge)
+│   ├── firebaseLib.ts            # Firebase initialization with AsyncStorage persistence
+│   ├── constants.ts              # CATEGORY_ICONS map
+│   └── utils.ts                  # cn() utility for conditional class merging
 │
-├── components/                   # Reusable UI components (mostly Expo scaffold defaults)
-│   ├── EditScreenInfo.tsx        # Expo default scaffold component
-│   ├── ExternalLink.tsx          # External link wrapper
-│   ├── StyledText.tsx            # MonoText component
-│   ├── Themed.tsx                # Theme-aware Text/View wrappers
-│   ├── useClientOnlyValue.ts     # Platform-specific value hook
-│   ├── useClientOnlyValue.web.ts # Web variant
-│   ├── useColorScheme.ts         # Native color scheme hook
-│   ├── useColorScheme.web.ts     # Web variant
-│   └── __tests__/                # Component test directory
-│
-├── constants/
-│   └── Colors.ts                 # Legacy color constants (not actively used — brand colors are in tailwind.config.js)
-│
-├── assets/
-│   ├── fonts/
-│   │   └── SpaceMono-Regular.ttf # Loaded in root _layout.tsx
-│   └── images/                   # App icons, splash screens, and mascot variants (see Section 3)
-│
-├── app.json                      # Expo config: scheme "foodapp", SDK 54, portrait lock
-├── babel.config.js               # Babel: nativewind/babel preset
-├── global.css                    # Tailwind CSS entry point (@tailwind directives)
-├── metro.config.js               # Metro bundler config for NativeWind
-├── nativewind-env.d.ts           # NativeWind TypeScript declarations
-├── expo-env.d.ts                 # Expo TypeScript declarations
-├── tailwind.config.js            # Brand color tokens, content paths, nativewind preset
-├── tsconfig.json                 # TypeScript config with @/* path alias
-├── package.json                  # All dependencies (see Section 2)
-├── package-lock.json             # Dependency lockfile
-└── personal.md                   # Personal notes (not part of the app)
+├── components/                   # Reusable UI components
+│   ├── AddressAutocomplete.tsx   # Google Places autocomplete for addresses
+│   ├── EditScreenInfo.tsx        
+│   ├── ExternalLink.tsx          
+│   ├── StyledText.tsx            
+│   ├── Themed.tsx                
+│   ├── useClientOnlyValue.ts     
+│   ├── useColorScheme.ts         
+│   └── __tests__/                
 ```
 
 ---
@@ -156,18 +151,21 @@ Food-app/
 
 ```typescript
 interface AppState {
-  role: 'buyer' | 'seller' | null;        // null = waiting for Firestore sync (prevents premature redirect)
+  role: 'buyer' | 'seller' | null;        // null = waiting for Firestore sync
   language: string;                         // Default: 'en'
-  unreadMessagesCount: number;              // Real-time count from Firestore /notifications collection
+  unreadMessagesCount: number;              // Real-time count from Firestore
   sellerVerificationStatus: 'pending' | 'verified' | 'unverified';
-  savedItems: number[];                     // Array of listing IDs for the buyer's wishlist
-  user: any | null;                         // Live Firebase Auth User object (null when signed out)
-  isAuthInitialized: boolean;               // Prevents UI rendering before Firebase confirms auth state
+  savedItems: string[];                     // Array of listing IDs for wishlist
+  orders: any[];                            // Cached orders list
+  user: any | null;                         // Live Firebase Auth User object
+  isAuthInitialized: boolean;               // Prevents UI rendering before auth state
 
   setRole: (role: 'buyer' | 'seller' | null) => void;
   setUnreadMessagesCount: (count: number) => void;
   setLanguage: (lang: string) => void;
-  toggleSavedItem: (id: number) => void;
+  toggleSavedItem: (id: string) => void;    // Also syncs to Firestore
+  setSavedItems: (items: string[]) => void;
+  setOrders: (orders: any[]) => void;
   clearSavedItems: () => void;
   setUser: (user: any | null) => void;
   setAuthInitialized: (val: boolean) => void;
@@ -176,7 +174,7 @@ interface AppState {
 
 **Key Behaviors:**
 - `role` starts as `null`. The root layout waits for Firestore to return the role before redirecting.
-- On sign-out, `role` is reset to `null`, `user` to `null`, and `unreadMessagesCount` to `0` to prevent session pollution.
+- `savedItems` is now synced to Firestore under the user doc on toggling.
 - `unreadMessagesCount` defaults to `0` (no fake badge).
 
 ---
@@ -215,7 +213,7 @@ It updates `unreadMessagesCount` in real-time. On sign-out, the count resets to 
 
 ### Role Switching
 
-Both the Buyer Profile screen (`(tabs)/profile.tsx`) and the Seller Settings screen (`(seller)/settings.tsx`) support role switching:
+Both the Buyer Profile screen (`(tabs)/profile/settings.tsx`) and the Seller Settings screen (`(seller)/profile/settings.tsx`) support role switching:
 - They call `updateDoc(doc(db, 'users', user.uid), { role: newRole })` to persist the change.
 - Then update Zustand and call `router.replace()` to navigate to the correct tab group.
 
@@ -229,7 +227,8 @@ Both the Buyer Profile screen (`(tabs)/profile.tsx`) and the Seller Settings scr
 {
   role: 'buyer' | 'seller',
   email: string,
-  createdAt: Timestamp
+  createdAt: Timestamp,
+  savedItems: string[]
 }
 ```
 
@@ -296,26 +295,29 @@ service cloud.firestore {
 
 | Screen | File | Data Source | Status |
 |---|---|---|---|
-| Login | `(auth)/login.tsx` | Firebase Auth + Firestore role sync | ✅ Complete |
-| Signup | `(auth)/signup.tsx` | Firebase Auth + Firestore user doc creation | ✅ Complete |
-| Forgot Password | `(auth)/forgot-password.tsx` | Firebase Auth `sendPasswordResetEmail` | ✅ Complete |
-| Buyer Home | `(tabs)/index.tsx` | Firestore `onSnapshot` on `listings` | ✅ Complete |
-| Buyer Map | `(tabs)/map.tsx` | Static map view | ⚠️ Markers not connected to listings |
-| Buyer Saved | `(tabs)/saved.tsx` | Zustand `savedItems` | ⚠️ Uses IDs but listings come from empty MOCK_DEALS |
-| Buyer Profile | `(tabs)/profile.tsx` | Firestore user doc + role switch | ✅ Complete |
-| Item Detail | `item/[id].tsx` | Firestore `getDoc` on single listing | ✅ Complete |
-| Search | `search.tsx` | **MOCK_DEALS (EMPTY)** | ❌ Needs migration to Firestore |
-| Notifications | `notifications.tsx` | Static empty state | ⚠️ UI only — no Firestore list rendering |
-| Seller Dashboard | `(seller)/index.tsx` | Placeholder stats | ⚠️ Stats are hardcoded |
-| Seller Inventory | `(seller)/inventory.tsx` | Firestore CRUD with animated modal | ✅ Complete |
-| Seller Settings | `(seller)/settings.tsx` | Firestore role switch + sign out | ✅ Complete |
+| Login | `(auth)/login.tsx` | Firebase Auth | ✅ Complete |
+| Signup | `(auth)/signup.tsx` | Firebase Auth | ✅ Complete |
+| Forgot Password | `(auth)/forgot-password.tsx` | Firebase Auth | ✅ Complete |
+| Buyer Home | `(tabs)/index.tsx` | Firestore `listings` | ✅ Complete |
+| Buyer Map | `(tabs)/map.tsx` | Static map view | ⚠️ Markers not connected |
+| Buyer Orders | `(tabs)/orders.tsx` | Firestore `orders` | ✅ Complete |
+| Buyer Profile | `(tabs)/profile/index.tsx` | Firestore user doc | ✅ Complete |
+| Item Detail | `listing/[id].tsx` | Firestore `listings` | ✅ Complete |
+| Order Detail | `order/[id].tsx` | Firestore `orders` | ✅ Complete |
+| Order Chat | `chat/[orderId].tsx` | Firestore `messages` | ✅ Complete |
+| Search | `search.tsx` | **MOCK_DEALS** | ❌ Needs migration |
+| Notifications | `notifications.tsx` | Static empty state | ⚠️ UI only |
+| Seller Dashboard | `(seller)/index.tsx` | Placeholder stats | ⚠️ Stats hardcoded |
+| Seller Inventory | `(seller)/inventory.tsx` | Firestore CRUD | ✅ Complete |
+| Seller Orders | `(seller)/orders.tsx` | Firestore `orders` | ✅ Complete |
+| Seller Settings | `(seller)/profile/settings.tsx`| Firestore role switch | ✅ Complete |
 
 ---
 
 ## 9. Known Issues & Technical Debt
 
 1. **`search.tsx` still imports `MOCK_DEALS`** — Since `MOCK_DEALS` is now an empty array, search will always return 0 results. Needs to be refactored to query the Firestore `listings` collection.
-2. **`saved.tsx` references listing IDs** but has no way to resolve them back to full listing objects from Firestore. It needs a lookup mechanism.
+2. **`saved.tsx` was removed** — Need a new UI to display `savedItems` in wishlist from Firestore array.
 3. **`(tabs)/explore.tsx` was removed** — The Explore tab is commented out in `(tabs)/_layout.tsx`. The file itself no longer exists. If it's needed again, it must be recreated.
 4. **Seller Dashboard (`(seller)/index.tsx`)** shows hardcoded performance stats. These should be computed from real listing/order data.
 5. **Listing images** use a single hardcoded Unsplash URL. Firebase Storage upload is not yet implemented.
