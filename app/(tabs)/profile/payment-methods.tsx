@@ -438,55 +438,7 @@ export default function PaymentMethodsScreen() {
                 <X size={scale(20)} color="white" />
               </Pressable>
               
-              <View>
-                <Pressable onPress={() => setIsDropdownVisible(!isDropdownVisible)} style={{ width: scale(40), height: scale(40), borderRadius: scale(20) }} className="bg-black/40 items-center justify-center">
-                  <MoreVertical size={scale(20)} color="white" />
-                </Pressable>
-                
-                {/* Dropdown Menu */}
-              {isDropdownVisible && selectedCard && (
-                <View 
-                  style={{ 
-                    position: 'absolute', 
-                    top: scale(52), 
-                    right: 0, 
-                    width: scale(180), 
-                    borderRadius: scale(16),
-                    elevation: 15,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.15,
-                    shadowRadius: 12,
-                    paddingVertical: verticalScale(4)
-                  }} 
-                  className="bg-white z-50 pointer-events-auto"
-                >
-                  {!selectedCard.isPrimary && (
-                    <>
-                      <TouchableOpacity 
-                        style={{ paddingLeft: scale(16), paddingRight: 0, paddingVertical: verticalScale(14) }}
-                        onPress={() => {
-                          makePrimary(selectedCard.id);
-                          closeCardModal();
-                        }}
-                      >
-                        <Text style={{ fontSize: moderateScale(16) }} className="text-gray-900 font-bold">Make primary</Text>
-                      </TouchableOpacity>
-                      <View style={{ height: 1, marginHorizontal: scale(16) }} className="bg-gray-100" />
-                    </>
-                  )}
-                  <TouchableOpacity 
-                    style={{ paddingLeft: scale(16), paddingRight: 0, paddingVertical: verticalScale(14) }}
-                    onPress={() => {
-                      closeCardModal();
-                      setTimeout(() => confirmRemoveCard(selectedCard.id), 300);
-                    }}
-                  >
-                    <Text style={{ fontSize: moderateScale(16) }} className="text-red-500 font-bold">Remove card</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+              <View style={{ width: scale(40), height: scale(40) }} />
           </View>
         </SafeAreaView>
 
@@ -575,6 +527,52 @@ export default function PaymentMethodsScreen() {
                     </View>
                   </View>
                 </View>
+              </View>
+
+              {/* Action Buttons Below Card */}
+              <View style={{ width: '100%', paddingHorizontal: scale(20), marginTop: verticalScale(32) }}>
+                {!selectedCard.isPrimary && (
+                  <TouchableOpacity 
+                    style={{ 
+                      paddingVertical: verticalScale(16), 
+                      borderRadius: scale(16),
+                      backgroundColor: '#1B7A49',
+                      borderWidth: 1,
+                      borderColor: '#166534',
+                      alignItems: 'center',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      marginBottom: verticalScale(12)
+                    }}
+                    onPress={() => {
+                      makePrimary(selectedCard.id);
+                      closeCardModal();
+                    }}
+                  >
+                    <CheckCircle2 size={scale(20)} color="white" style={{ marginRight: scale(8) }} />
+                    <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Make primary</Text>
+                  </TouchableOpacity>
+                )}
+                
+                <TouchableOpacity 
+                  style={{ 
+                    paddingVertical: verticalScale(16), 
+                    borderRadius: scale(16),
+                    backgroundColor: '#EF4444',
+                    borderWidth: 1,
+                    borderColor: '#DC2626',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center'
+                  }}
+                  onPress={() => {
+                    closeCardModal();
+                    setTimeout(() => confirmRemoveCard(selectedCard.id), 300);
+                  }}
+                >
+                  <X size={scale(20)} color="white" style={{ marginRight: scale(8) }} />
+                  <Text style={{ fontSize: moderateScale(16) }} className="text-white font-bold">Remove card</Text>
+                </TouchableOpacity>
               </View>
 
             </Animated.View>

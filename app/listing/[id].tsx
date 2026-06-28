@@ -1,8 +1,10 @@
-import { db } from '@/lib/firebaseLib';
+import { db, functions } from '@/lib/firebaseLib';
 import { useAppStore } from '@/store/app-store';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { ArrowLeft, Clock, Heart, Info, MapPin, Share2, ShieldCheck, ShoppingBag, Store, X } from 'lucide-react-native';
+import { httpsCallable } from 'firebase/functions';
+import { useStripe } from '@stripe/stripe-react-native';
+import { ArrowLeft, Clock, Heart, Info, MapPin, Share2, ShieldCheck, ShoppingBag, Store, X, CreditCard } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,9 +36,40 @@ export default function ListingDetailScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [buyerCards, setBuyerCards] = useState<any[]>([]);
+  const [buyerCustomerId, setBuyerCustomerId] = useState<string | null>(null);
+  const [taxAmount, setTaxAmount] = useState(0);
+  const [taxCalculationId, setTaxCalculationId] = useState<string | null>(null);
+  const [isCalculatingTax, setIsCalculatingTax] = useState(false);
   const slideAnim = useRef(new Animated.Value(height)).current;
+  const { confirmPayment } = useStripe();
 
-  const openModal = () => {
+  useEffect(() => {
+    if (user?.uid) {
+      const fetchCards = async () => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.paymentMethods) {
+              setBuyerCards(data.paymentMethods);
+            }
+            if (data.stripeCustomerId) {
+              setBuyerCustomerId(data.stripeCustomerId);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch cards:", e);
+        }
+      };
+      fetchCards();
+    }
+  }, [user?.uid]);
+
+  const primaryCard = buyerCards?.find((c: any) => c.isPrimary) || buyerCards?.[0];
+
+  const openModal = async () => {
     setModalVisible(true);
     Animated.spring(slideAnim, {
       toValue: 0,
@@ -44,6 +77,26 @@ export default function ListingDetailScreen() {
       bounciness: 0,
       speed: 14
     }).start();
+
+    // Fetch tax quote
+    if (item?.sellerId) {
+      setIsCalculatingTax(true);
+      try {
+        const amountInCents = Math.round(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity * 100);
+        const calculateTaxQuote = httpsCallable(functions, 'calculateTaxQuote');
+        const response = await calculateTaxQuote({
+          amount: amountInCents,
+          sellerId: item.sellerId
+        });
+        const data = response.data as any;
+        setTaxAmount(data.taxAmountExclusive / 100);
+        setTaxCalculationId(data.calculationId);
+      } catch (e) {
+        console.error("Failed to calculate tax:", e);
+      } finally {
+        setIsCalculatingTax(false);
+      }
+    }
   };
 
   const closeModal = () => {
@@ -62,12 +115,62 @@ export default function ListingDetailScreen() {
       return;
     }
 
+    if (!primaryCard) {
+      closeModal();
+      setTimeout(() => {
+        router.dismiss();
+        setTimeout(() => {
+          router.navigate('/(tabs)/profile' as any);
+          setTimeout(() => {
+            router.push('/(tabs)/profile/payment-methods' as any);
+          }, 100);
+        }, 100);
+      }, 250);
+      return;
+    }
+
     if ((item.quantity ?? 1) <= 0) {
       Alert.alert("Out of Stock", "This item is no longer available.");
       return;
     }
 
+    if (!item.sellerData?.stripeAccountId) {
+      Alert.alert("Error", "This seller cannot accept payments right now.");
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
     try {
+      const subtotalInCents = Math.round(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity * 100);
+      const taxInCents = Math.round(taxAmount * 100);
+      const totalAmountInCents = subtotalInCents + taxInCents;
+      
+      const createPaymentIntent = httpsCallable(functions, 'createPaymentIntent');
+      const response = await createPaymentIntent({
+        amount: totalAmountInCents,
+        subtotal: subtotalInCents,
+        sellerStripeAccountId: item.sellerData?.stripeAccountId,
+        customerId: buyerCustomerId,
+        paymentMethodId: primaryCard.id,
+        calculationId: taxCalculationId,
+        description: `Order for ${item.title} (x${purchaseQuantity})`
+      });
+
+      const { clientSecret } = response.data as any;
+      if (!clientSecret) {
+        throw new Error("Failed to initialize payment");
+      }
+
+      // Handle 3DS confirmation using Stripe SDK
+      const { error, paymentIntent } = await confirmPayment(clientSecret);
+      
+      if (error) {
+        Alert.alert("Payment Failed", error.message);
+        setIsProcessingPayment(false);
+        return;
+      }
+
       const orderData = {
         buyerId: user.uid,
         sellerId: item.sellerId || '',
@@ -75,6 +178,7 @@ export default function ListingDetailScreen() {
         itemData: item,
         status: 'ordered',
         quantity: purchaseQuantity,
+        paymentIntentId: paymentIntent.id,
         createdAt: serverTimestamp(),
       };
       const docRef = await addDoc(collection(db, 'orders'), orderData);
@@ -95,9 +199,11 @@ export default function ListingDetailScreen() {
           router.push(`/order/${docRef.id}` as any);
         }, 100);
       }, 250);
-    } catch (err) {
-      Alert.alert("Error", "Could not place order. Please try again.");
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Could not place order. Please try again.");
       console.error(err);
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -418,20 +524,65 @@ export default function ListingDetailScreen() {
                     </View>
 
                     <View style={{ paddingTop: verticalScale(8) }} className="flex-row justify-between items-center">
-                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-600 font-medium">Total Price</Text>
-                      <Text style={{ fontSize: moderateScale(22) }} className="text-brandPrimary font-bold">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-600 font-medium">Subtotal</Text>
+                      <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-gray-900">
                         ${(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity).toFixed(2)}
                       </Text>
                     </View>
+
+                    <View style={{ paddingTop: verticalScale(8) }} className="flex-row justify-between items-center">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-600 font-medium">Tax</Text>
+                      {isCalculatingTax ? (
+                        <ActivityIndicator size="small" color="#F97316" />
+                      ) : (
+                        <Text style={{ fontSize: moderateScale(17) }} className="font-bold text-gray-900">
+                          ${taxAmount.toFixed(2)}
+                        </Text>
+                      )}
+                    </View>
+
+                    <View style={{ paddingTop: verticalScale(14), marginTop: verticalScale(8) }} className="flex-row justify-between items-center border-t border-gray-50">
+                      <Text style={{ fontSize: moderateScale(16) }} className="text-gray-900 font-bold">Total Price</Text>
+                      {isCalculatingTax ? (
+                        <ActivityIndicator size="small" color="#F97316" />
+                      ) : (
+                        <Text style={{ fontSize: moderateScale(22) }} className="text-brandPrimary font-bold">
+                          ${(parseFloat((item.price || '$0').replace('$', '')) * purchaseQuantity + taxAmount).toFixed(2)}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Payment Method Details */}
+                    <View style={{ paddingTop: verticalScale(14), marginTop: verticalScale(14) }} className="flex-row justify-between items-center border-t border-gray-50">
+                      <Text style={{ fontSize: moderateScale(15) }} className="text-gray-600 font-medium">Payment</Text>
+                      {primaryCard ? (
+                        <View className="flex-row items-center">
+                          <CreditCard size={scale(16)} color="#4B5563" style={{ marginRight: scale(6) }} />
+                          <Text style={{ fontSize: moderateScale(15) }} className="font-bold text-gray-900 capitalize">
+                            {primaryCard.brand} •••• {primaryCard.last4}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text style={{ fontSize: moderateScale(15) }} className="font-medium text-red-500">
+                          No card saved
+                        </Text>
+                      )}
+                    </View>
                   </View>
 
-                  {/* Placeholder for the actual Firebase Transaction */}
                   <Pressable
                     onPress={handleBuy}
+                    disabled={isProcessingPayment}
                     style={{ paddingVertical: verticalScale(18), borderRadius: scale(999) }}
-                    className="bg-brandPrimary items-center shadow-lg shadow-brandPrimary/30 active:opacity-90"
+                    className={`items-center shadow-lg active:opacity-90 flex-row justify-center ${!primaryCard ? 'bg-gray-800' : 'bg-brandPrimary shadow-brandPrimary/30'} ${isProcessingPayment ? 'opacity-70' : ''}`}
                   >
-                    <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold tracking-tight">Confirm</Text>
+                    {isProcessingPayment ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text style={{ fontSize: moderateScale(18) }} className="text-white font-bold tracking-tight">
+                        {!primaryCard ? "Add Payment Method" : "Confirm"}
+                      </Text>
+                    )}
                   </Pressable>
                 </Animated.View>
               </View>

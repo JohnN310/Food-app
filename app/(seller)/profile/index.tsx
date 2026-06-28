@@ -285,7 +285,7 @@ export default function SellerSettingsScreen() {
             icon={<CreditCard size={scale(20)} color="#1B7A49" />}
             title="Payout methods"
             subtitle="Bank accounts & payment settings"
-            onPress={() => router.push('/profile/payment-methods' as any)}
+            onPress={() => router.push('/(seller)/profile/payout-methods' as any)}
           />
           <View style={{ height: 1, marginLeft: scale(64) }} className="bg-gray-50" />
           {/* <MenuItem
